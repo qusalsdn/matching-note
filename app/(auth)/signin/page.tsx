@@ -3,18 +3,18 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import AuthForm from "../components/AuthForm";
 import { useForm } from "react-hook-form";
-import { Auth, schema } from "../signup/page";
 import { useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
+import { authSchema, AuthSchemaType } from "../components/AuthSchema";
 
 export default function Signin() {
   const router = useRouter();
-  const methods = useForm({ resolver: zodResolver(schema) });
+  const methods = useForm({ resolver: zodResolver(authSchema) });
   const [loading, setLoading] = useState(false);
 
-  const onSubmit = async (formData: Auth) => {
+  const onSubmit = async (formData: AuthSchemaType) => {
     setLoading(true);
 
     const { error } = await supabase.auth.signInWithPassword(formData);

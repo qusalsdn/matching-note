@@ -6,12 +6,13 @@ import { UserLock } from "lucide-react";
 import Link from "next/link";
 import { FormProvider, UseFormReturn } from "react-hook-form";
 import { FormError } from "./FormError";
+import type { AuthSchemaType } from "./AuthSchema";
 
 type Props = {
   cardActionText: string;
   buttonText: string;
-  onSubmit: (data: any) => void;
-  methods: UseFormReturn<any>;
+  onSubmit: (data: AuthSchemaType) => void;
+  methods: UseFormReturn<AuthSchemaType>;
   loading: boolean;
 };
 
