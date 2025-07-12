@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import Header from "./components/Header";
+import { Toaster } from "sonner";
 
 export const metadata: Metadata = {
   title: "매칭노트 | 스터디 그룹 매칭 플랫폼",
@@ -17,6 +18,7 @@ export default function RootLayout({
       <body className="mx-auto max-w-5xl p-5 lg:px-0">
         <Header />
         <main>{children}</main>
+        <Toaster position="top-center" />
       </body>
     </html>
   );

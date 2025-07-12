@@ -1,5 +1,44 @@
+"use client";
+
+import { zodResolver } from "@hookform/resolvers/zod";
 import AuthForm from "../components/AuthForm";
+import { useForm } from "react-hook-form";
+import { Auth, schema } from "../signup/page";
+import { useState } from "react";
+import { supabase } from "@/lib/supabase";
+import { toast } from "sonner";
+import { useRouter } from "next/navigation";
 
 export default function Signin() {
-  return <AuthForm />;
+  const router = useRouter();
+  const methods = useForm({ resolver: zodResolver(schema) });
+  const [loading, setLoading] = useState(false);
+
+  const onSubmit = async (formData: Auth) => {
+    setLoading(true);
+
+    const { error } = await supabase.auth.signInWithPassword(formData);
+
+    setLoading(false);
+
+    if (error) {
+      switch (error.message) {
+        case "Invalid login credentials":
+          toast.error("이메일 또는 비밀번호가 잘못되었습니다.");
+          return;
+        case "Email not confirmed":
+          toast.error("이메일 인증이 필요합니다.");
+          return;
+        default:
+          toast.error("오류가 발생했습니다. 다시 시도해주세요.");
+          return;
+      }
+    }
+
+    toast.success("로그인 성공!");
+
+    router.replace("/");
+  };
+
+  return <AuthForm cardActionText="회원가입" buttonText="로그인" onSubmit={onSubmit} methods={methods} loading={loading} />;
 }
