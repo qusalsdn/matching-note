@@ -7,37 +7,41 @@ import { useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
-import { authSchema, AuthSchemaType } from "../components/AuthSchema";
+import { signinSchema, SigninSchemaType } from "../components/AuthSchema";
 
 export default function Signin() {
   const router = useRouter();
-  const methods = useForm({ resolver: zodResolver(authSchema) });
+  const methods = useForm({ resolver: zodResolver(signinSchema) });
   const [loading, setLoading] = useState(false);
 
-  const onSubmit = async (formData: AuthSchemaType) => {
-    setLoading(true);
+  const onSubmit = async (formData: SigninSchemaType) => {
+    try {
+      setLoading(true);
 
-    const { error } = await supabase.auth.signInWithPassword(formData);
+      const { error } = await supabase.auth.signInWithPassword(formData);
 
-    setLoading(false);
-
-    if (error) {
-      switch (error.message) {
-        case "Invalid login credentials":
-          toast.error("이메일 또는 비밀번호가 잘못되었습니다.");
-          return;
-        case "Email not confirmed":
-          toast.error("이메일 인증이 필요합니다.");
-          return;
-        default:
-          toast.error("오류가 발생했습니다. 다시 시도해주세요.");
-          return;
+      if (error) {
+        switch (error.message) {
+          case "Invalid login credentials":
+            toast.error("이메일 또는 비밀번호가 잘못되었습니다.");
+            return;
+          case "Email not confirmed":
+            toast.error("이메일 인증이 필요합니다.");
+            return;
+          default:
+            toast.error("오류가 발생했습니다. 다시 시도해주세요.");
+            return;
+        }
       }
+
+      toast.success("로그인 성공!");
+
+      router.replace("/");
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setLoading(false);
     }
-
-    toast.success("로그인 성공!");
-
-    router.replace("/");
   };
 
   return <AuthForm cardActionText="회원가입" buttonText="로그인" onSubmit={onSubmit} methods={methods} loading={loading} />;
