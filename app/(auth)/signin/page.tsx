@@ -4,7 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import AuthForm from "../components/AuthForm";
 import { useForm } from "react-hook-form";
 import { useState } from "react";
-import { supabase } from "@/lib/supabase";
+import { supabase } from "@/utils/supabase/client";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { signinSchema, SigninSchemaType } from "../components/AuthSchema";
