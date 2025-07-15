@@ -8,6 +8,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
+import toast from "react-hot-toast";
 
 export default function Header() {
   const pathname = usePathname();
@@ -32,6 +33,7 @@ export default function Header() {
   const handleLogout = async () => {
     await supabase.auth.signOut();
     setIsLoggedIn(false);
+    toast.success("로그아웃 성공!");
   };
 
   return (

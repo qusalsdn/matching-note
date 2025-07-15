@@ -5,11 +5,12 @@ import AuthForm from "../components/AuthForm";
 import { useForm } from "react-hook-form";
 import { useState } from "react";
 import { supabase } from "@/utils/supabase/client";
-import { toast } from "sonner";
+
 import { useRouter } from "next/navigation";
 import { signinSchema, SigninSchemaType } from "../components/AuthSchema";
 import { useSetAtom } from "jotai";
 import { isLoggedInAtom } from "@/atoms/authAtom";
+import toast from "react-hot-toast";
 
 export default function Signin() {
   const router = useRouter();
