@@ -8,10 +8,13 @@ import { supabase } from "@/utils/supabase/client";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { signinSchema, SigninSchemaType } from "../components/AuthSchema";
+import { useSetAtom } from "jotai";
+import { isLoggedInAtom } from "@/atoms/authAtom";
 
 export default function Signin() {
   const router = useRouter();
   const methods = useForm({ resolver: zodResolver(signinSchema) });
+  const setIsLoggedInAtom = useSetAtom(isLoggedInAtom);
   const [loading, setLoading] = useState(false);
 
   const onSubmit = async (formData: SigninSchemaType) => {
@@ -33,6 +36,8 @@ export default function Signin() {
             return;
         }
       }
+
+      setIsLoggedInAtom(true);
 
       toast.success("로그인 성공!");
 

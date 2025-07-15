@@ -1,15 +1,38 @@
 "use client";
 
+import { isLoggedInAtom } from "@/atoms/authAtom";
 import { Button } from "@/components/ui/button";
+import { supabase } from "@/utils/supabase/client";
+import { useAtom } from "jotai";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
 
 export default function Header() {
   const pathname = usePathname();
+  const [isLoggedIn, setIsLoggedIn] = useAtom(isLoggedInAtom);
+  const [isLoaded, setIsLoaded] = useState(false);
 
   const hiddenOnPaths = ["/signin", "/signup"];
   const shouldHideLoginButton = hiddenOnPaths.includes(pathname);
+
+  useEffect(() => {
+    const getCurrentUser = async () => {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (user) setIsLoggedIn(true);
+      setIsLoaded(true);
+    };
+
+    getCurrentUser();
+  }, [setIsLoggedIn]);
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    setIsLoggedIn(false);
+  };
 
   return (
     <header className="flex items-start justify-between">
@@ -19,13 +42,19 @@ export default function Header() {
         </Link>
       </div>
 
-      {!shouldHideLoginButton && (
-        <Link href={"/signin"}>
-          <Button type="button" size={"sm"}>
-            로그인
+      {isLoaded &&
+        !shouldHideLoginButton &&
+        (isLoggedIn ? (
+          <Button type="button" size={"sm"} variant={"destructive"} onClick={handleLogout}>
+            로그아웃
           </Button>
-        </Link>
-      )}
+        ) : (
+          <Link href={"/signin"}>
+            <Button type="button" size={"sm"}>
+              로그인
+            </Button>
+          </Link>
+        ))}
     </header>
   );
 }
