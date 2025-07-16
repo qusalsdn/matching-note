@@ -23,12 +23,12 @@ export default function Header() {
       const {
         data: { user },
       } = await supabase.auth.getUser();
-      if (user) setIsLoggedIn(true);
+      setIsLoggedIn(user ? true : false);
       setIsLoaded(true);
     };
 
     getCurrentUser();
-  }, [setIsLoggedIn]);
+  }, [pathname, setIsLoggedIn]);
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
