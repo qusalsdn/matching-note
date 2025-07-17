@@ -24,9 +24,13 @@ export async function updateSession(request: NextRequest) {
   } = await supabase.auth.getUser();
 
   const authPages = ["/signin", "/signUp"];
-  if (user && authPages.includes(request.nextUrl.pathname)) {
-    return NextResponse.redirect(new URL("/", request.url));
-  }
+  const protectedKeywords = ["create", "update", "delete"];
+  const pathname = request.nextUrl.pathname;
+
+  if (user && authPages.includes(pathname)) return NextResponse.redirect(new URL("/", request.url));
+
+  if (!user && protectedKeywords.some((keyword) => pathname.includes(keyword)))
+    return NextResponse.redirect(new URL("/signin", request.url));
 
   return supabaseResponse;
 }
