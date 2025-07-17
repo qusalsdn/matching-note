@@ -39,7 +39,7 @@ export default function Header() {
   };
 
   return (
-    <header className="flex items-start justify-between">
+    <header className="mx-auto max-w-5xl px-5 lg:px-0 flex items-center justify-between">
       <div className="relative w-32 h-20">
         <Link href={"/"}>
           <Image src={"/logo/matchingNoteLogo.png"} alt="logo" fill className="p-2" />

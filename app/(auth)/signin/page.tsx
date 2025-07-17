@@ -19,9 +19,8 @@ export default function Signin() {
   const [loading, setLoading] = useState(false);
 
   const onSubmit = async (formData: SigninSchemaType) => {
+    setLoading(true);
     try {
-      setLoading(true);
-
       const { error } = await supabase.auth.signInWithPassword(formData);
 
       if (error) {

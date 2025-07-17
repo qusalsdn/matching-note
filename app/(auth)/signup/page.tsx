@@ -15,9 +15,8 @@ export default function Signup() {
   const [loading, setLoading] = useState(false);
 
   const onSubmit = async (formData: SignupSchemaType) => {
+    setLoading(true);
     try {
-      setLoading(true);
-
       const { data } = await supabase.from("users").select("*").eq("username", formData.username);
 
       if (data && data.length > 0) {
