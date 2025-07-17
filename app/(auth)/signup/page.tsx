@@ -18,10 +18,10 @@ export default function Signup() {
     try {
       setLoading(true);
 
-      const { data } = await supabase.from("users").select("*").eq("nickname", formData.nickname);
+      const { data } = await supabase.from("users").select("*").eq("username", formData.username);
 
       if (data && data.length > 0) {
-        methods.setFocus("nickname");
+        methods.setFocus("username");
         return toast.error("닉네임 이미 존재합니다.");
       }
 
@@ -35,7 +35,7 @@ export default function Signup() {
 
       const { error: insertError } = await supabase.from("users").insert({
         user_id: user.id,
-        nickname: formData.nickname,
+        username: formData.username,
       });
       if (insertError?.code === "23505") return toast.error("닉네임이 중복됩니다.");
 

@@ -56,8 +56,8 @@ export default function AuthForm<T extends FieldValues>({ cardActionText, button
               {buttonText === "회원가입" && (
                 <div className="space-y-2">
                   <Label>닉네임</Label>
-                  <Input type="text" {...methods.register("nickname" as Path<T>, { required: true })} />
-                  <FormError error={methods.formState.errors.nickname as FieldError} />
+                  <Input type="text" {...methods.register("username" as Path<T>, { required: true })} />
+                  <FormError error={methods.formState.errors.username as FieldError} />
                 </div>
               )}
             </CardContent>
