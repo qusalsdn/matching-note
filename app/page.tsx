@@ -16,6 +16,15 @@ const studyCategories = [
 export default function Home() {
   return (
     <div className="space-y-5">
+      {/* 스터디 그룹 생성 부분 */}
+      <section className="text-end">
+        <Link href={"/study-group/create"}>
+          <Button type="button" size={"sm"}>
+            <p className="text-xl">+</p>
+          </Button>
+        </Link>
+      </section>
+
       {/* 검색 부분 */}
       <section className="flex items-center">
         <div className="relative flex items-center flex-grow">
@@ -26,14 +35,11 @@ export default function Home() {
             className="p-5 rounded-full mr-3 pl-12 w-full text-sm lg:text-base"
           />
         </div>
-        <Button type="submit" className="bg-blue-600 hover:bg-blue-500 duration-300">
-          검색
-        </Button>
+        <Button type="submit">검색</Button>
       </section>
 
       {/* 스터디 카테고리 부분 */}
       <section>
-        <h2>스터디 카테고리</h2>
         <div className="mt-2 grid grid-cols-3 gap-3">
           {studyCategories.map((item) => (
             <Link key={item.name} href={""}>
