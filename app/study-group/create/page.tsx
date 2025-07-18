@@ -17,19 +17,29 @@ import toast from "react-hot-toast";
 import { getUserId } from "@/utils/supabase/getUser";
 import { useRouter } from "next/navigation";
 
-const category = ["프로그래밍", "외국어", "자격증", "독서", "취업/이직", "디자인"] as const;
+const category = ["프로그래밍", "외국어", "자격증", "독서", "취업/이직", "디자인", "운동", "기타"] as const;
 const status = ["모집 중", "진행 중", "종료"] as const;
 
-const groupSchema = z.object({
-  leader_id: z.coerce.number().min(1),
-  group_name: z.string().min(3, "스터디 그룹 이름은 3~30자 이내여야 합니다.").max(30),
-  description: z.string().min(3, "스터디 설명은 3~30자 이내여야 합니다.").max(200, "스터디 설명은 3~30자 이내여야 합니다."),
-  category: z.enum(category),
-  max_members: z.coerce.number().min(2, "인원은 본인 포함 최소 2명 이상이어야 합니다."),
-  is_online: z.boolean(),
-  location: z.string().min(3, "오프라인 장소는 3~30자 이내여야 합니다.").max(30).optional(),
-  status: z.enum(status),
-});
+const groupSchema = z
+  .object({
+    leader_id: z.coerce.number().min(1),
+    group_name: z.string().min(3, "스터디 그룹 이름은 3~30자 이내여야 합니다.").max(30),
+    description: z.string().min(3, "스터디 설명은 3~30자 이내여야 합니다.").max(200, "스터디 설명은 3~30자 이내여야 합니다."),
+    category: z.enum(category),
+    max_members: z.coerce.number().min(2, "인원은 본인 포함 최소 2명 이상이어야 합니다."),
+    is_online: z.boolean(),
+    location: z.string().max(30).optional(),
+    status: z.enum(status),
+  })
+  .superRefine((data, ctx) => {
+    if (!data.is_online && (!data.location || data.location.trim().length < 3 || data.location.trim().length > 30)) {
+      ctx.addIssue({
+        path: ["location"],
+        code: z.ZodIssueCode.custom,
+        message: "오프라인 장소는 3~30자 이내여야 합니다.",
+      });
+    }
+  });
 
 type GroupFormData = z.infer<typeof groupSchema>;
 
@@ -41,7 +51,7 @@ export default function GroupForm() {
       leader_id: 0,
       group_name: "",
       description: "",
-      category: "취업/이직",
+      category: "프로그래밍",
       max_members: 2,
       is_online: true,
       location: undefined,
@@ -136,7 +146,7 @@ export default function GroupForm() {
               <FormLabel>카테고리</FormLabel>
               <Select onValueChange={field.onChange} defaultValue={field.value}>
                 <FormControl>
-                  <SelectTrigger>
+                  <SelectTrigger className="w-full">
                     <SelectValue placeholder="카테고리 선택" />
                   </SelectTrigger>
                 </FormControl>
@@ -171,11 +181,11 @@ export default function GroupForm() {
           control={form.control}
           name="is_online"
           render={({ field }) => (
-            <FormItem className="flex items-center space-x-3">
+            <FormItem className="flex items-center">
               <FormControl>
                 <Checkbox checked={field.value} onCheckedChange={field.onChange} />
               </FormControl>
-              <FormLabel className="font-normal">온라인 스터디</FormLabel>
+              <FormLabel className="font-normal">온라인 여부</FormLabel>
             </FormItem>
           )}
         />
@@ -190,6 +200,7 @@ export default function GroupForm() {
                 <FormControl>
                   <Input placeholder="장소 입력" {...field} />
                 </FormControl>
+                <FormMessage />
               </FormItem>
             )}
           />
@@ -203,7 +214,7 @@ export default function GroupForm() {
               <FormLabel>그룹 상태</FormLabel>
               <Select onValueChange={field.onChange} defaultValue={field.value}>
                 <FormControl>
-                  <SelectTrigger>
+                  <SelectTrigger className="w-full">
                     <SelectValue placeholder="상태 선택" />
                   </SelectTrigger>
                 </FormControl>
@@ -218,9 +229,15 @@ export default function GroupForm() {
           )}
         />
 
-        <Button type="submit" disabled={loading} className="w-full">
-          스터디 생성
-        </Button>
+        <div>
+          <Button type="submit" disabled={loading} className="w-full">
+            스터디 생성
+          </Button>
+
+          <Button type="button" onClick={() => router.back()} className="w-full bg-rose-500 hover:bg-rose-400 mt-2">
+            취소
+          </Button>
+        </div>
       </form>
     </Form>
   );

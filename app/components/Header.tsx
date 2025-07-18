@@ -49,7 +49,7 @@ export default function Header() {
       {isLoaded &&
         !shouldHideLoginButton &&
         (isLoggedIn ? (
-          <Button type="button" size={"sm"} variant={"destructive"} onClick={handleLogout}>
+          <Button type="button" size={"sm"} onClick={handleLogout} className="bg-rose-500 hover:bg-rose-400">
             로그아웃
           </Button>
         ) : (
