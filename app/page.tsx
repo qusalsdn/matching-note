@@ -1,48 +1,27 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import Link from "next/link";
-import { BookOpen, BriefcaseBusiness, CodeXml, FileBadge, Languages, Palette, Search } from "lucide-react";
+import { Activity, BookOpen, BriefcaseBusiness, CodeXml, Ellipsis, FileBadge, Languages, Palette } from "lucide-react";
 
 const studyCategories = [
-  { name: "프로그래밍", icon: <CodeXml size={26} className="text-red-500" /> },
-  { name: "외국어", icon: <Languages size={26} className="text-orange-500" /> },
-  { name: "자격증", icon: <FileBadge size={26} className="text-yellow-500" /> },
-  { name: "독서", icon: <BookOpen size={26} className="text-green-500" /> },
-  { name: "취업/이직", icon: <BriefcaseBusiness size={26} className="text-blue-500" /> },
-  { name: "디자인", icon: <Palette size={26} className="text-purple-500" /> },
+  { name: "프로그래밍", icon: <CodeXml size={26} className="text-red-500" />, url: "/study-group/category/programming" },
+  { name: "외국어", icon: <Languages size={26} className="text-orange-500" />, url: "/study-group/category/foreign-language" },
+  { name: "자격증", icon: <FileBadge size={26} className="text-yellow-500" />, url: "/study-group/category/certificate" },
+  { name: "독서", icon: <BookOpen size={26} className="text-green-500" />, url: "/study-group/category/reading" },
+  { name: "취업/이직", icon: <BriefcaseBusiness size={26} className="text-blue-500" />, url: "/study-group/category/employment" },
+  { name: "디자인", icon: <Palette size={26} className="text-purple-500" />, url: "/study-group/category/design" },
+  { name: "운동", icon: <Activity size={26} className="text-indigo-500" />, url: "/study-group/category/exercise" },
+  { name: "기타", icon: <Ellipsis size={26} />, url: "/study-group/category/etc" },
 ];
 
 export default function Home() {
   return (
     <div className="space-y-5">
-      {/* 스터디 그룹 생성 부분 */}
-      <section className="text-end">
-        <Link href={"/study-group/create"}>
-          <Button type="button" size={"sm"}>
-            <p className="text-xl">+</p>
-          </Button>
-        </Link>
-      </section>
-
-      {/* 검색 부분 */}
-      <section className="flex items-center">
-        <div className="relative flex items-center flex-grow">
-          <Search className="absolute left-3 text-gray-400" size={20} />
-          <Input
-            type="text"
-            placeholder="스터디명, 과목, 키워드로 검색"
-            className="p-5 rounded-full mr-3 pl-12 w-full text-sm lg:text-base"
-          />
-        </div>
-        <Button type="submit">검색</Button>
-      </section>
-
       {/* 스터디 카테고리 부분 */}
       <section>
         <div className="mt-2 grid grid-cols-3 gap-3">
           {studyCategories.map((item) => (
-            <Link key={item.name} href={""}>
+            <Link key={item.name} href={item.url}>
               <div className="flex flex-col items-center justify-center w-full h-auto py-3 lg:h-28 hover:bg-gray-100 duration-500 rounded-md">
                 <span>{item.icon}</span>
                 <span className="text-sm">{item.name}</span>
