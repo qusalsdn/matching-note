@@ -4,14 +4,42 @@ import Link from "next/link";
 import { Activity, BookOpen, BriefcaseBusiness, CodeXml, Ellipsis, FileBadge, Languages, Palette } from "lucide-react";
 
 const studyCategories = [
-  { name: "프로그래밍", icon: <CodeXml size={26} className="text-red-500" />, url: "/study-group/category/programming" },
-  { name: "외국어", icon: <Languages size={26} className="text-orange-500" />, url: "/study-group/category/foreign-language" },
-  { name: "자격증", icon: <FileBadge size={26} className="text-yellow-500" />, url: "/study-group/category/certificate" },
-  { name: "독서", icon: <BookOpen size={26} className="text-green-500" />, url: "/study-group/category/reading" },
-  { name: "취업/이직", icon: <BriefcaseBusiness size={26} className="text-blue-500" />, url: "/study-group/category/employment" },
-  { name: "디자인", icon: <Palette size={26} className="text-purple-500" />, url: "/study-group/category/design" },
-  { name: "운동", icon: <Activity size={26} className="text-indigo-500" />, url: "/study-group/category/exercise" },
-  { name: "기타", icon: <Ellipsis size={26} />, url: "/study-group/category/etc" },
+  {
+    name: "프로그래밍",
+    icon: <CodeXml size={26} className="text-red-500" />,
+    url: `/study-group?category=${encodeURIComponent("프로그래밍")}`,
+  },
+  {
+    name: "외국어",
+    icon: <Languages size={26} className="text-orange-500" />,
+    url: `/study-group?category=${encodeURIComponent("외국어")}`,
+  },
+  {
+    name: "자격증",
+    icon: <FileBadge size={26} className="text-yellow-500" />,
+    url: `/study-group?category=${encodeURIComponent("자격증")}`,
+  },
+  {
+    name: "독서",
+    icon: <BookOpen size={26} className="text-green-500" />,
+    url: `/study-group?category=${encodeURIComponent("독서")}`,
+  },
+  {
+    name: "취업/이직",
+    icon: <BriefcaseBusiness size={26} className="text-blue-500" />,
+    url: `/study-group?category=${encodeURIComponent("취업/이직")}`,
+  },
+  {
+    name: "디자인",
+    icon: <Palette size={26} className="text-purple-500" />,
+    url: `/study-group?category=${encodeURIComponent("디자인")}`,
+  },
+  {
+    name: "운동",
+    icon: <Activity size={26} className="text-indigo-500" />,
+    url: `/study-group?category=${encodeURIComponent("운동")}`,
+  },
+  { name: "기타", icon: <Ellipsis size={26} />, url: `/study-group?category=${encodeURIComponent("기타")}` },
 ];
 
 export default function Home() {

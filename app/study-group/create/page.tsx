@@ -23,7 +23,10 @@ const status = ["모집 중", "진행 중", "종료"] as const;
 const groupSchema = z
   .object({
     leader_id: z.coerce.number().min(1),
-    group_name: z.string().min(3, "스터디 그룹 이름은 3~30자 이내여야 합니다.").max(30),
+    group_name: z
+      .string()
+      .min(3, "스터디 그룹 이름은 3~30자 이내여야 합니다.")
+      .max(30, "스터디 그룹 이름은 3~30자 이내여야 합니다."),
     description: z.string().min(3, "스터디 설명은 3~30자 이내여야 합니다.").max(200, "스터디 설명은 3~30자 이내여야 합니다."),
     category: z.enum(category),
     max_members: z.coerce.number().min(2, "인원은 본인 포함 최소 2명 이상이어야 합니다."),
