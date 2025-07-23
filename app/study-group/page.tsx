@@ -1,7 +1,7 @@
 "use client";
 
 import { useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { supabase } from "@/utils/supabase/client";
 import StudyGroupPostCard from "./category/components/StudyGroupPostCard";
 import { Database } from "@/utils/supabase/types";
@@ -13,7 +13,7 @@ export type StudyGroup = Database["public"]["Tables"]["study_groups"]["Row"] & {
   group_bookmarks: Database["public"]["Tables"]["group_bookmarks"]["Row"][];
 };
 
-export default function StudyGroup() {
+function StudyGroup() {
   const category = useSearchParams().get("category");
   const [data, setData] = useState<StudyGroup[]>([]);
 
@@ -47,5 +47,13 @@ export default function StudyGroup() {
         <StudyGroupPostCard key={item.id} item={item} />
       ))}
     </section>
+  );
+}
+
+export default function StudyGroupPage() {
+  return (
+    <Suspense>
+      <StudyGroup />
+    </Suspense>
   );
 }
