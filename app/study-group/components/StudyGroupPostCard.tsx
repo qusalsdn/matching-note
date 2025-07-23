@@ -1,6 +1,6 @@
 import { Card, CardAction, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Heart, Star, Users } from "lucide-react";
-import { StudyGroup } from "../../page";
+import { StudyGroup } from "../page";
 import { formatDate } from "@/utils/dateUtils";
 
 export default function StudyGroupPostCard({ item }: { item: StudyGroup }) {
@@ -31,6 +31,7 @@ export default function StudyGroupPostCard({ item }: { item: StudyGroup }) {
             {item.group_members.length.toLocaleString()}/{item.max_members}
           </span>
         </div>
+        <span className={item.is_online ? "text-emerald-500" : "text-rose-500"}>{item.is_online ? "온라인" : "오프라인"}</span>
         <span>조회수 {item.view_count.toLocaleString()}</span>
         <span>좋아요 {item.group_likes.length.toLocaleString()}</span>
         <span>즐겨찾기 {item.group_bookmarks.length.toLocaleString()}</span>

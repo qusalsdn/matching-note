@@ -1,11 +1,13 @@
 "use client";
 
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
 import { supabase } from "@/utils/supabase/client";
-import StudyGroupPostCard from "./category/components/StudyGroupPostCard";
+import StudyGroupPostCard from "./components/StudyGroupPostCard";
 import { Database } from "@/utils/supabase/types";
 import toast from "react-hot-toast";
+import Link from "next/link";
+import { ChevronLeft } from "lucide-react";
 
 export type StudyGroup = Database["public"]["Tables"]["study_groups"]["Row"] & {
   group_members: Database["public"]["Tables"]["group_members"]["Row"][];
@@ -14,6 +16,7 @@ export type StudyGroup = Database["public"]["Tables"]["study_groups"]["Row"] & {
 };
 
 function StudyGroup() {
+  const router = useRouter();
   const category = useSearchParams().get("category");
   const [data, setData] = useState<StudyGroup[]>([]);
 
@@ -42,11 +45,20 @@ function StudyGroup() {
   if (!category) return <div className="text-center">페이지를 찾을 수 없습니다...</div>;
 
   return (
-    <section className="space-y-3">
+    <div className="space-y-3">
+      <section className="flex items-center space-x-1">
+        <ChevronLeft size={28} onClick={() => router.back()} className="cursor-pointer" />
+        <span className="text-lg font-bold mb-1">{category}</span>
+      </section>
+
       {data.map((item) => (
-        <StudyGroupPostCard key={item.id} item={item} />
+        <div key={item.id}>
+          <Link href={`/study-group/${item.id}`}>
+            <StudyGroupPostCard item={item} />
+          </Link>
+        </div>
       ))}
-    </section>
+    </div>
   );
 }
 

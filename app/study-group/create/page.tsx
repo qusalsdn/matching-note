@@ -112,9 +112,9 @@ export default function GroupForm() {
           name="group_name"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>스터디 그룹 이름</FormLabel>
+              <FormLabel>스터디 그룹명</FormLabel>
               <FormControl>
-                <Input placeholder="스터디 그룹 이름을 입력해주세요." {...field} />
+                <Input placeholder="스터디 그룹명을 입력해주세요." {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
