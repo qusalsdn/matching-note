@@ -91,6 +91,50 @@ function StudyGroup() {
     );
   };
 
+  const handleBookmark = async (studyGroupId: number) => {
+    mutate(
+      async () => {
+        const isBookmarked = data
+          ?.find((studyGroup) => studyGroup.id === studyGroupId)
+          ?.group_bookmarks.some((bookmark) => bookmark.user_id === userId);
+
+        const updatedData = data?.map((studyGroup) => {
+          if (studyGroup.id === studyGroupId) {
+            if (!isBookmarked) {
+              return {
+                ...studyGroup,
+                group_bookmarks: [...studyGroup.group_bookmarks, { group_id: studyGroupId, user_id: userId }],
+              };
+            } else {
+              return {
+                ...studyGroup,
+                group_bookmarks: studyGroup.group_bookmarks.filter((bookmark) => bookmark.user_id !== userId),
+              };
+            }
+          }
+          return studyGroup;
+        });
+
+        if (!isBookmarked) {
+          const { error } = await supabase.from("group_bookmarks").insert({ group_id: studyGroupId, user_id: userId });
+          if (error) {
+            console.error(error);
+            throw error;
+          }
+        } else {
+          const { error } = await supabase.from("group_bookmarks").delete().eq("group_id", studyGroupId).eq("user_id", userId);
+          if (error) {
+            console.error(error);
+            throw error;
+          }
+        }
+
+        return updatedData;
+      },
+      { rollbackOnError: true, populateCache: true, revalidate: false }
+    );
+  };
+
   if (!category) return <div className="text-center">페이지를 찾을 수 없습니다...</div>;
 
   return (
@@ -103,7 +147,7 @@ function StudyGroup() {
       {data?.map((item) => (
         <div key={item.id}>
           <Link href={`/study-group/${item.id}`}>
-            <StudyGroupPostCard item={item} handleLike={handleLike} />
+            <StudyGroupPostCard item={item} handleLike={handleLike} handleBookmark={handleBookmark} />
           </Link>
         </div>
       ))}

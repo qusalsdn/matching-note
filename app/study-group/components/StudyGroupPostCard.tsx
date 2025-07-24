@@ -11,7 +11,15 @@ type StudyGroup = Database["public"]["Tables"]["study_groups"]["Row"] & {
   group_bookmarks: Database["public"]["Tables"]["group_bookmarks"]["Row"][];
 };
 
-export default function StudyGroupPostCard({ item, handleLike }: { item: StudyGroup; handleLike: (id: number) => void }) {
+export default function StudyGroupPostCard({
+  item,
+  handleLike,
+  handleBookmark,
+}: {
+  item: StudyGroup;
+  handleLike: (id: number) => void;
+  handleBookmark: (id: number) => void;
+}) {
   const userId = useAtomValue(userUuidAtom);
 
   return (
@@ -34,7 +42,18 @@ export default function StudyGroupPostCard({ item, handleLike }: { item: StudyGr
                 handleLike(item.id);
               }}
             />
-            <Star className="w-5 h-5 text-zinc-500" />
+            <Star
+              className={`w-5 h-5 ${
+                item.group_bookmarks.find((bookmark) => bookmark.user_id === userId)
+                  ? "text-yellow-300 fill-current"
+                  : "text-zinc-500"
+              }`}
+              onClick={(e) => {
+                e.stopPropagation();
+                e.preventDefault();
+                handleBookmark(item.id);
+              }}
+            />
           </div>
         </CardAction>
       </CardHeader>

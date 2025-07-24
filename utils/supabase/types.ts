@@ -77,13 +77,13 @@ export type Database = {
       };
       group_bookmarks: {
         Row: {
-          bookmarked_at: string;
+          bookmarked_at?: string;
           group_id: number;
-          id: number;
+          id?: number;
           user_id: string;
         };
         Insert: {
-          bookmarked_at: string;
+          bookmarked_at?: string;
           group_id: number;
           id?: number;
           user_id: string;
