@@ -52,6 +52,8 @@ function StudyGroup() {
     key: "group_likes" | "group_bookmarks";
     table: "group_likes" | "group_bookmarks";
   }) => {
+    if (!userId) return toast.error("로그인을 해주세요.!");
+
     mutate(
       async () => {
         const isToggled = data?.find((group) => group.id === studyGroupId)?.[key].some((item) => item.user_id === userId);
