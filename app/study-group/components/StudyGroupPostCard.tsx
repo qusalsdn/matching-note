@@ -4,6 +4,7 @@ import { formatDate } from "@/utils/dateUtils";
 import { Database } from "@/utils/supabase/types";
 import { useAtomValue } from "jotai";
 import { userUuidAtom } from "@/atoms/authAtom";
+import clsx from "clsx";
 
 type StudyGroup = Database["public"]["Tables"]["study_groups"]["Row"] & {
   group_members: Database["public"]["Tables"]["group_members"]["Row"][];
@@ -22,8 +23,14 @@ export default function StudyGroupPostCard({
 }) {
   const userId = useAtomValue(userUuidAtom);
 
+  const handleIconClick = (e: React.MouseEvent, callback: (id: number) => void) => {
+    e.stopPropagation();
+    e.preventDefault();
+    callback(item.id);
+  };
+
   return (
-    <Card className="hover:shadow-xl duration-300 cursor-pointer">
+    <Card className="hover:shadow-xl duration-300">
       <CardHeader>
         <CardTitle>
           <span className="lg:text-xl">{item.group_name}</span>
@@ -33,26 +40,24 @@ export default function StudyGroupPostCard({
           <span className="lg:text-sm text-xs text-zinc-500">{formatDate(item.created_at)}</span>
           <div className="flex space-x-2">
             <Heart
-              className={`w-5 h-5 ${
-                item.group_likes.find((like) => like.user_id === userId) ? "text-rose-500 fill-current" : "text-zinc-500"
-              }`}
-              onClick={(e) => {
-                e.stopPropagation();
-                e.preventDefault();
-                handleLike(item.id);
-              }}
+              onClick={(e) => handleIconClick(e, handleLike)}
+              aria-label="좋아요"
+              role="button"
+              className={clsx(
+                "w-5 h-5 transition-transform hover:scale-125",
+                item.group_likes.some((like) => like.user_id === userId) ? "text-rose-500 fill-current" : "text-zinc-500"
+              )}
             />
             <Star
-              className={`w-5 h-5 ${
+              onClick={(e) => handleIconClick(e, handleBookmark)}
+              aria-label="즐겨찾기"
+              role="button"
+              className={clsx(
+                "w-5 h-5 transition-transform hover:scale-125",
                 item.group_bookmarks.find((bookmark) => bookmark.user_id === userId)
                   ? "text-yellow-300 fill-current"
                   : "text-zinc-500"
-              }`}
-              onClick={(e) => {
-                e.stopPropagation();
-                e.preventDefault();
-                handleBookmark(item.id);
-              }}
+              )}
             />
           </div>
         </CardAction>

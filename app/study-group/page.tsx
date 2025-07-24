@@ -18,14 +18,10 @@ function StudyGroup() {
   const [userId, setUserId] = useAtom(userUuidAtom);
 
   useEffect(() => {
-    const fetchUserId = async () => {
-      const userUuid = await getUserUuid();
-
-      if (userUuid) setUserId(userUuid);
-    };
-
-    fetchUserId();
-  }, [setUserId]);
+    if (!userId) {
+      getUserUuid().then((uuid) => uuid && setUserId(uuid));
+    }
+  }, [setUserId, userId]);
 
   const fetcher = async (category: string | null) => {
     if (!category) return null;
@@ -47,43 +43,37 @@ function StudyGroup() {
     return toast.error("서버에 오류가 발생하였습니다...ㅠ");
   }
 
-  const handleLike = async (studyGroupId: number) => {
+  const toggleItem = async ({
+    studyGroupId,
+    key,
+    table,
+  }: {
+    studyGroupId: number;
+    key: "group_likes" | "group_bookmarks";
+    table: "group_likes" | "group_bookmarks";
+  }) => {
     mutate(
       async () => {
-        const isLiked = data
-          ?.find((studyGroup) => studyGroup.id === studyGroupId)
-          ?.group_likes.some((like) => like.user_id === userId);
+        const isToggled = data?.find((group) => group.id === studyGroupId)?.[key].some((item) => item.user_id === userId);
 
-        const updatedData = data?.map((studyGroup) => {
-          if (studyGroup.id === studyGroupId) {
-            if (!isLiked) {
-              return {
-                ...studyGroup,
-                group_likes: [...studyGroup.group_likes, { group_id: studyGroupId, user_id: userId }],
-              };
-            } else {
-              return {
-                ...studyGroup,
-                group_likes: studyGroup.group_likes.filter((like) => like.user_id !== userId),
-              };
-            }
+        const updatedData = data?.map((group) => {
+          if (group.id === studyGroupId) {
+            return {
+              ...group,
+              [key]: isToggled
+                ? group[key].filter((item) => item.user_id !== userId)
+                : [...group[key], { group_id: studyGroupId, user_id: userId }],
+            };
           }
-          return studyGroup;
+          return group;
         });
 
-        if (!isLiked) {
-          const { error } = await supabase.from("group_likes").insert({ group_id: studyGroupId, user_id: userId });
-          if (error) {
-            console.error(error);
-            throw error;
-          }
-        } else {
-          const { error } = await supabase.from("group_likes").delete().eq("group_id", studyGroupId).eq("user_id", userId);
-          if (error) {
-            console.error(error);
-            throw error;
-          }
-        }
+        const supabaseOp = isToggled
+          ? supabase.from(table).delete().eq("group_id", studyGroupId).eq("user_id", userId)
+          : supabase.from(table).insert({ group_id: studyGroupId, user_id: userId });
+
+        const { error } = await supabaseOp;
+        if (error) throw error;
 
         return updatedData;
       },
@@ -91,49 +81,8 @@ function StudyGroup() {
     );
   };
 
-  const handleBookmark = async (studyGroupId: number) => {
-    mutate(
-      async () => {
-        const isBookmarked = data
-          ?.find((studyGroup) => studyGroup.id === studyGroupId)
-          ?.group_bookmarks.some((bookmark) => bookmark.user_id === userId);
-
-        const updatedData = data?.map((studyGroup) => {
-          if (studyGroup.id === studyGroupId) {
-            if (!isBookmarked) {
-              return {
-                ...studyGroup,
-                group_bookmarks: [...studyGroup.group_bookmarks, { group_id: studyGroupId, user_id: userId }],
-              };
-            } else {
-              return {
-                ...studyGroup,
-                group_bookmarks: studyGroup.group_bookmarks.filter((bookmark) => bookmark.user_id !== userId),
-              };
-            }
-          }
-          return studyGroup;
-        });
-
-        if (!isBookmarked) {
-          const { error } = await supabase.from("group_bookmarks").insert({ group_id: studyGroupId, user_id: userId });
-          if (error) {
-            console.error(error);
-            throw error;
-          }
-        } else {
-          const { error } = await supabase.from("group_bookmarks").delete().eq("group_id", studyGroupId).eq("user_id", userId);
-          if (error) {
-            console.error(error);
-            throw error;
-          }
-        }
-
-        return updatedData;
-      },
-      { rollbackOnError: true, populateCache: true, revalidate: false }
-    );
-  };
+  const handleLike = (id: number) => toggleItem({ studyGroupId: id, key: "group_likes", table: "group_likes" });
+  const handleBookmark = (id: number) => toggleItem({ studyGroupId: id, key: "group_bookmarks", table: "group_bookmarks" });
 
   if (!category) return <div className="text-center">페이지를 찾을 수 없습니다...</div>;
 
