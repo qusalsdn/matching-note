@@ -1,46 +1,95 @@
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
-import { Suspense, useEffect, useState } from "react";
+import { Suspense, useEffect } from "react";
 import { supabase } from "@/utils/supabase/client";
 import StudyGroupPostCard from "./components/StudyGroupPostCard";
-import { Database } from "@/utils/supabase/types";
 import toast from "react-hot-toast";
 import Link from "next/link";
 import { ChevronLeft } from "lucide-react";
-
-export type StudyGroup = Database["public"]["Tables"]["study_groups"]["Row"] & {
-  group_members: Database["public"]["Tables"]["group_members"]["Row"][];
-  group_likes: Database["public"]["Tables"]["group_likes"]["Row"][];
-  group_bookmarks: Database["public"]["Tables"]["group_bookmarks"]["Row"][];
-};
+import useSWR from "swr";
+import { getUserUuid } from "@/utils/supabase/getUser";
+import { useAtom } from "jotai";
+import { userUuidAtom } from "@/atoms/authAtom";
 
 function StudyGroup() {
   const router = useRouter();
   const category = useSearchParams().get("category");
-  const [data, setData] = useState<StudyGroup[]>([]);
+  const [userId, setUserId] = useAtom(userUuidAtom);
 
   useEffect(() => {
-    if (!category) return;
+    const fetchUserId = async () => {
+      const userUuid = await getUserUuid();
 
-    const fetchStudyGroup = async () => {
-      const { data, error } = await supabase
-        .from("study_groups")
-        .select("*, group_members(*), group_likes(*), group_bookmarks(*)")
-        .eq("category", category)
-        .order("pinned_until", { ascending: false })
-        .order("created_at", { ascending: false });
-
-      if (error) {
-        console.error(error);
-        return toast.error("서버에 오류가 발생하였습니다...ㅠ");
-      }
-
-      setData(data);
+      if (userUuid) setUserId(userUuid);
     };
 
-    fetchStudyGroup();
-  }, [category]);
+    fetchUserId();
+  }, [setUserId]);
+
+  const fetcher = async (category: string | null) => {
+    if (!category) return null;
+
+    const { data } = await supabase
+      .from("study_groups")
+      .select("*, group_members(*), group_likes(*), group_bookmarks(*)")
+      .eq("category", category ?? "")
+      .order("pinned_until", { ascending: false })
+      .order("created_at", { ascending: false });
+
+    return data;
+  };
+
+  const { data, error, mutate } = useSWR(category ?? null, fetcher);
+
+  if (error) {
+    console.error(error);
+    return toast.error("서버에 오류가 발생하였습니다...ㅠ");
+  }
+
+  const handleLike = async (studyGroupId: number) => {
+    mutate(
+      async () => {
+        const isLiked = data
+          ?.find((studyGroup) => studyGroup.id === studyGroupId)
+          ?.group_likes.some((like) => like.user_id === userId);
+
+        const updatedData = data?.map((studyGroup) => {
+          if (studyGroup.id === studyGroupId) {
+            if (!isLiked) {
+              return {
+                ...studyGroup,
+                group_likes: [...studyGroup.group_likes, { group_id: studyGroupId, user_id: userId }],
+              };
+            } else {
+              return {
+                ...studyGroup,
+                group_likes: studyGroup.group_likes.filter((like) => like.user_id !== userId),
+              };
+            }
+          }
+          return studyGroup;
+        });
+
+        if (!isLiked) {
+          const { error } = await supabase.from("group_likes").insert({ group_id: studyGroupId, user_id: userId });
+          if (error) {
+            console.error(error);
+            throw error;
+          }
+        } else {
+          const { error } = await supabase.from("group_likes").delete().eq("group_id", studyGroupId).eq("user_id", userId);
+          if (error) {
+            console.error(error);
+            throw error;
+          }
+        }
+
+        return updatedData;
+      },
+      { rollbackOnError: true, populateCache: true, revalidate: false }
+    );
+  };
 
   if (!category) return <div className="text-center">페이지를 찾을 수 없습니다...</div>;
 
@@ -51,10 +100,10 @@ function StudyGroup() {
         <span className="text-lg font-bold mb-1">{category}</span>
       </section>
 
-      {data.map((item) => (
+      {data?.map((item) => (
         <div key={item.id}>
           <Link href={`/study-group/${item.id}`}>
-            <StudyGroupPostCard item={item} />
+            <StudyGroupPostCard item={item} handleLike={handleLike} />
           </Link>
         </div>
       ))}

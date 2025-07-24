@@ -1,9 +1,19 @@
 import { Card, CardAction, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Heart, Star, Users } from "lucide-react";
-import { StudyGroup } from "../page";
 import { formatDate } from "@/utils/dateUtils";
+import { Database } from "@/utils/supabase/types";
+import { useAtomValue } from "jotai";
+import { userUuidAtom } from "@/atoms/authAtom";
 
-export default function StudyGroupPostCard({ item }: { item: StudyGroup }) {
+type StudyGroup = Database["public"]["Tables"]["study_groups"]["Row"] & {
+  group_members: Database["public"]["Tables"]["group_members"]["Row"][];
+  group_likes: Database["public"]["Tables"]["group_likes"]["Row"][];
+  group_bookmarks: Database["public"]["Tables"]["group_bookmarks"]["Row"][];
+};
+
+export default function StudyGroupPostCard({ item, handleLike }: { item: StudyGroup; handleLike: (id: number) => void }) {
+  const userId = useAtomValue(userUuidAtom);
+
   return (
     <Card className="hover:shadow-xl duration-300 cursor-pointer">
       <CardHeader>
@@ -14,7 +24,16 @@ export default function StudyGroupPostCard({ item }: { item: StudyGroup }) {
         <CardAction className="flex flex-col items-end space-y-1">
           <span className="lg:text-sm text-xs text-zinc-500">{formatDate(item.created_at)}</span>
           <div className="flex space-x-2">
-            <Heart className="w-5 h-5 text-zinc-500" />
+            <Heart
+              className={`w-5 h-5 ${
+                item.group_likes.find((like) => like.user_id === userId) ? "text-rose-500 fill-current" : "text-zinc-500"
+              }`}
+              onClick={(e) => {
+                e.stopPropagation();
+                e.preventDefault();
+                handleLike(item.id);
+              }}
+            />
             <Star className="w-5 h-5 text-zinc-500" />
           </div>
         </CardAction>

@@ -72,10 +72,11 @@ export default function GroupForm() {
   useEffect(() => {
     const fetchUser = async () => {
       const userId = await getUserId();
-      if (typeof userId === "number") {
-        setUserId(userId);
-        form.setValue("leader_id", userId);
-      }
+
+      if (typeof userId !== "number") return;
+
+      setUserId(userId);
+      form.setValue("leader_id", userId);
     };
 
     fetchUser();
