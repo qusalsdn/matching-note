@@ -8,12 +8,11 @@ import { useAtom } from "jotai";
 import { Search } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 
 export default function Header() {
-  const router = useRouter();
   const pathname = usePathname();
   const [isLoggedIn, setIsLoggedIn] = useAtom(isLoggedInAtom);
   const [isLoaded, setIsLoaded] = useState(false);
@@ -37,7 +36,7 @@ export default function Header() {
     await supabase.auth.signOut();
     setIsLoggedIn(false);
     toast.success("로그아웃 성공!");
-    router.replace("/");
+    window.location.href = "/";
   };
 
   return (
