@@ -32,6 +32,5 @@ export async function updateSession(request: NextRequest) {
   if (!user && protectedKeywords.some((keyword) => pathname.includes(keyword)))
     return NextResponse.redirect(new URL("/signin", request.url));
 
-  supabaseResponse.headers.set("Cache-Control", "no-store");
   return supabaseResponse;
 }
