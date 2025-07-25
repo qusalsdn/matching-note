@@ -18,7 +18,7 @@ export default function RootLayout({
     <html lang="ko">
       <body>
         <Header />
-        <main className="mx-auto max-w-5xl px-5 lg:px-0 mt-5">{children}</main>
+        <main className="mx-auto max-w-5xl p-5 lg:px-0">{children}</main>
         <Toaster />
       </body>
     </html>

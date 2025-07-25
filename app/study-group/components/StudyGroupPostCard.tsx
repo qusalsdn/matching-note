@@ -6,7 +6,7 @@ import { useAtomValue } from "jotai";
 import { userUuidAtom } from "@/atoms/authAtom";
 import { HeartButton, StarButton } from "./IconButtons";
 
-export type StudyGroup = Database["public"]["Tables"]["study_groups"]["Row"] & {
+type StudyGroup = Database["public"]["Tables"]["study_groups"]["Row"] & {
   group_members: Database["public"]["Tables"]["group_members"]["Row"][];
   group_likes: Database["public"]["Tables"]["group_likes"]["Row"][];
   group_bookmarks: Database["public"]["Tables"]["group_bookmarks"]["Row"][];
@@ -42,13 +42,11 @@ export default function StudyGroupPostCard({
             <HeartButton
               active={item.group_likes.some((like) => like.user_id === userId)}
               onClick={(e) => handleIconClick(e, handleLike)}
-              ariaLabel="좋아요"
             />
 
             <StarButton
               active={item.group_bookmarks.some((bookmark) => bookmark.user_id === userId)}
               onClick={(e) => handleIconClick(e, handleBookmark)}
-              ariaLabel="즐겨찾기"
             />
           </div>
         </CardAction>

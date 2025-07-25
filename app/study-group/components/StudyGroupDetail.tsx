@@ -1,12 +1,17 @@
 "use client";
 
-import { ChevronLeft, Heart, MapPinned, Star, User, UserRoundPen, Users } from "lucide-react";
+import { ChevronLeft, MapPinned, User, UserRoundPen, Users } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Card, CardAction, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatDate } from "@/utils/dateUtils";
 import { Database } from "@/utils/supabase/types";
+import { supabase } from "@/utils/supabase/client";
+import useSWR from "swr";
+import toast from "react-hot-toast";
+import { HeartButton, StarButton } from "./IconButtons";
+import { useUserId } from "@/app/hooks/useUserId";
 
-type StudyGroup = Database["public"]["Tables"]["study_groups"]["Row"] & {
+export type StudyGroupDetail = Database["public"]["Tables"]["study_groups"]["Row"] & {
   group_members: (Database["public"]["Tables"]["group_members"]["Row"] & {
     users: Pick<Database["public"]["Tables"]["users"]["Row"], "id" | "username">;
   })[];
@@ -14,8 +19,71 @@ type StudyGroup = Database["public"]["Tables"]["study_groups"]["Row"] & {
   group_bookmarks: Database["public"]["Tables"]["group_bookmarks"]["Row"][];
 };
 
-export default function StudyGroupDetail({ data }: { data: StudyGroup | null }) {
+export default function StudyGroupDetail({ studyGroupId }: { studyGroupId: string }) {
   const router = useRouter();
+  const userId = useUserId();
+
+  const fetcher = async (studyGroupId: string) => {
+    const { data } = await supabase
+      .from("study_groups")
+      .select("*, group_members(*, users(id, username)), group_likes(*), group_bookmarks(*)")
+      .eq("id", Number(studyGroupId))
+      .single();
+
+    return data;
+  };
+
+  const { data, error, mutate } = useSWR(studyGroupId, fetcher);
+
+  const toggleItem = async ({
+    studyGroupId,
+    key,
+    table,
+  }: {
+    studyGroupId: number;
+    key: "group_likes" | "group_bookmarks";
+    table: "group_likes" | "group_bookmarks";
+  }) => {
+    if (!userId) return toast.error("로그인을 해주세요.!");
+    if (!data) return;
+
+    mutate(
+      async () => {
+        const isToggled = data[key].some((item) => item.user_id === userId);
+
+        const updatedData = {
+          ...data,
+          [key]: isToggled
+            ? data[key].filter((item) => item.user_id !== userId)
+            : [...data[key], { group_id: studyGroupId, user_id: userId }],
+        };
+
+        const supabaseOp = isToggled
+          ? supabase.from(table).delete().eq("group_id", studyGroupId).eq("user_id", userId)
+          : supabase.from(table).insert({ group_id: studyGroupId, user_id: userId });
+
+        const { error } = await supabaseOp;
+        if (error) throw error;
+
+        return updatedData;
+      },
+      { rollbackOnError: true, populateCache: true, revalidate: false }
+    );
+  };
+
+  const handleIconClick = (e: React.MouseEvent, callback: (id: number) => void) => {
+    e.stopPropagation();
+    e.preventDefault();
+    callback(Number(studyGroupId));
+  };
+
+  const handleLike = (id: number) => toggleItem({ studyGroupId: id, key: "group_likes", table: "group_likes" });
+  const handleBookmark = (id: number) => toggleItem({ studyGroupId: id, key: "group_bookmarks", table: "group_bookmarks" });
+
+  if (error) {
+    console.error(error);
+    return toast.error("서버에 오류가 발생하였습니다...ㅠ");
+  }
 
   return (
     <div>
@@ -46,8 +114,15 @@ export default function StudyGroupDetail({ data }: { data: StudyGroup | null }) 
             <CardAction className="flex flex-col items-end space-y-1">
               <span className="lg:text-sm text-xs text-zinc-500">{formatDate(data?.created_at ?? "")}</span>
               <div className="flex space-x-2">
-                <Heart className="w-5 h-5 text-zinc-500" />
-                <Star className="w-5 h-5 text-zinc-500" />
+                <HeartButton
+                  active={data?.group_likes.some((like) => like.user_id === userId) ?? false}
+                  onClick={(e) => handleIconClick(e, handleLike)}
+                />
+
+                <StarButton
+                  active={data?.group_bookmarks.some((bookmark) => bookmark.user_id === userId) ?? false}
+                  onClick={(e) => handleIconClick(e, handleBookmark)}
+                />
               </div>
             </CardAction>
           </CardHeader>
