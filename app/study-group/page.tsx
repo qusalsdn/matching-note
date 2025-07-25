@@ -13,22 +13,34 @@ import { useUserId } from "../hooks/useUserId";
 function StudyGroup() {
   const router = useRouter();
   const category = useSearchParams().get("category");
+  const search = useSearchParams().get("search");
   const userId = useUserId();
 
-  const fetcher = async (category: string | null) => {
-    if (!category) return null;
+  const fetcher = async (category: string | null, search: string | null) => {
+    if (category) {
+      const { data } = await supabase
+        .from("study_groups")
+        .select("*, group_members(*), group_likes(*), group_bookmarks(*)")
+        .eq("category", category ?? "")
+        .order("pinned_until", { ascending: false })
+        .order("created_at", { ascending: false });
 
-    const { data } = await supabase
-      .from("study_groups")
-      .select("*, group_members(*), group_likes(*), group_bookmarks(*)")
-      .eq("category", category ?? "")
-      .order("pinned_until", { ascending: false })
-      .order("created_at", { ascending: false });
+      return data;
+    }
 
-    return data;
+    if (search) {
+      const { data } = await supabase
+        .from("study_groups")
+        .select("*, group_members(*), group_likes(*), group_bookmarks(*)")
+        .or(`group_name.ilike.%${search}%, description.ilike.%${search}%, category.ilike.%${search}%`);
+
+      return data;
+    }
+
+    return null;
   };
 
-  const { data, error, mutate } = useSWR(category ?? null, fetcher);
+  const { data, error, mutate } = useSWR([category, search], ([category, search]) => fetcher(category, search));
 
   if (error) {
     console.error(error);
@@ -79,13 +91,13 @@ function StudyGroup() {
   const handleLike = (id: number) => toggleItem({ studyGroupId: id, key: "group_likes", table: "group_likes" });
   const handleBookmark = (id: number) => toggleItem({ studyGroupId: id, key: "group_bookmarks", table: "group_bookmarks" });
 
-  if (!category) return <div className="text-center">페이지를 찾을 수 없습니다...</div>;
+  if (!category && !search) return <div className="text-center">페이지를 찾을 수 없습니다...</div>;
 
   return (
     <div className="space-y-3">
       <section className="flex items-center space-x-1">
         <ChevronLeft size={28} onClick={() => router.back()} className="cursor-pointer" />
-        <span className="text-lg font-bold mb-1">{category}</span>
+        {category && <span className="text-lg font-bold mb-1">{category}</span>}
       </section>
 
       {data?.map((item) => (
