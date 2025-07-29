@@ -32,7 +32,14 @@ export default function StudyGroupPostCard({
   return (
     <Card className="hover:shadow-xl duration-300">
       <CardHeader>
-        <CardTitle>
+        <CardTitle className="flex flex-col">
+          <span
+            className={`text-sm ${
+              item.status === "모집 중" ? "text-emerald-400" : item.status === "진행 중" ? "text-yellow-400" : "text-rose-500"
+            }`}
+          >
+            {item.status}
+          </span>
           <span className="lg:text-xl">{item.group_name}</span>
         </CardTitle>
 
