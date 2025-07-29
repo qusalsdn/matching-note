@@ -39,6 +39,7 @@ const studyCategories = [
     icon: <Activity size={26} className="text-indigo-500" />,
     url: `/study-group?category=${encodeURIComponent("운동")}`,
   },
+  { name: "전체", icon: "ALL", url: "/study-group?category=ALL" },
   { name: "기타", icon: <Ellipsis size={26} />, url: `/study-group?category=${encodeURIComponent("기타")}` },
 ];
 

@@ -18,12 +18,13 @@ function StudyGroup() {
 
   const fetcher = async (category: string | null, search: string | null) => {
     if (category) {
-      const { data } = await supabase
-        .from("study_groups")
-        .select("*, group_members(*), group_likes(*), group_bookmarks(*)")
-        .eq("category", category ?? "")
-        .order("pinned_until", { ascending: false })
-        .order("created_at", { ascending: false });
+      let query = supabase.from("study_groups").select("*, group_members(*), group_likes(*), group_bookmarks(*)");
+
+      if (category !== "ALL") {
+        query = query.eq("category", category);
+      }
+
+      const { data } = await query.order("pinned_until", { ascending: false }).order("created_at", { ascending: false });
 
       return data;
     }
