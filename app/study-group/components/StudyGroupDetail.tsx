@@ -114,28 +114,34 @@ export default function StudyGroupDetail({ studyGroupId }: { studyGroupId: strin
             </CardTitle>
 
             <CardAction className="flex flex-col items-end space-y-1">
-              <div className="relative">
-                <Ellipsis role="button" className="w-5 h-5 text-zinc-800 cursor-pointer" onClick={() => setMenuOpen(!menuOpen)} />
+              {userId === data?.leader_id && (
+                <div className="relative">
+                  <Ellipsis
+                    role="button"
+                    className="w-5 h-5 text-zinc-800 cursor-pointer"
+                    onClick={() => setMenuOpen(!menuOpen)}
+                  />
 
-                {menuOpen && <div className="fixed inset-0 z-10" onClick={() => setMenuOpen(false)}></div>}
+                  {menuOpen && <div className="fixed inset-0 z-10" onClick={() => setMenuOpen(false)}></div>}
 
-                {menuOpen && (
-                  <div className="absolute z-20 right-0 w-36 h-32 flex flex-col items-center justify-center p-3 space-y-2 bg-white border-2 rounded-md">
-                    <div
-                      onClick={() => router.push(`/study-group/update/${studyGroupId}`)}
-                      className="w-full flex items-center justify-between cursor-pointer p-3 rounded-md hover:bg-zinc-100 duration-300"
-                    >
-                      <SquarePen className="w-5 h-5" />
-                      <span>수정하기</span>
+                  {menuOpen && (
+                    <div className="absolute z-20 right-0 w-36 h-32 flex flex-col items-center justify-center p-3 space-y-2 bg-white border-2 rounded-md">
+                      <div
+                        onClick={() => router.push(`/study-group/update/${studyGroupId}`)}
+                        className="w-full flex items-center justify-between cursor-pointer p-3 rounded-md hover:bg-zinc-100 duration-300"
+                      >
+                        <SquarePen className="w-5 h-5" />
+                        <span>수정하기</span>
+                      </div>
+
+                      <div className="w-full flex items-center justify-between cursor-pointer p-3 rounded-md hover:bg-zinc-100 duration-300">
+                        <Trash2 className="w-5 h-5" />
+                        <span>삭제하기</span>
+                      </div>
                     </div>
-
-                    <div className="w-full flex items-center justify-between cursor-pointer p-3 rounded-md hover:bg-zinc-100 duration-300">
-                      <Trash2 className="w-5 h-5" />
-                      <span>삭제하기</span>
-                    </div>
-                  </div>
-                )}
-              </div>
+                  )}
+                </div>
+              )}
 
               <span className="lg:text-sm text-xs text-zinc-500">{formatDate(data?.created_at ?? "")}</span>
 
