@@ -77,9 +77,9 @@ export type Database = {
       };
       group_bookmarks: {
         Row: {
-          bookmarked_at?: string;
+          bookmarked_at: string;
           group_id: number;
-          id?: number;
+          id: number;
           user_id: string;
         };
         Insert: {
@@ -114,8 +114,8 @@ export type Database = {
       group_likes: {
         Row: {
           group_id: number;
-          id?: number;
-          liked_at?: string;
+          id: number;
+          liked_at: string;
           user_id: string;
         };
         Insert: {
@@ -153,21 +153,21 @@ export type Database = {
           id: number;
           joined_at: string;
           role: string;
-          user_id: number;
+          user_id: string;
         };
         Insert: {
           group_id: number;
           id?: number;
           joined_at?: string;
           role: string;
-          user_id: number;
+          user_id: string;
         };
         Update: {
           group_id?: number;
           id?: number;
           joined_at?: string;
           role?: string;
-          user_id?: number;
+          user_id?: string;
         };
         Relationships: [
           {
@@ -182,7 +182,7 @@ export type Database = {
             columns: ["user_id"];
             isOneToOne: false;
             referencedRelation: "users";
-            referencedColumns: ["id"];
+            referencedColumns: ["user_id"];
           }
         ];
       };
@@ -229,7 +229,7 @@ export type Database = {
           group_name: string;
           id: number;
           is_online: boolean;
-          leader_id: number;
+          leader_id: string;
           location: string | null;
           max_members: number;
           pinned_until: string;
@@ -243,7 +243,7 @@ export type Database = {
           group_name: string;
           id?: number;
           is_online: boolean;
-          leader_id: number;
+          leader_id: string;
           location?: string | null;
           max_members: number;
           pinned_until?: string;
@@ -257,7 +257,7 @@ export type Database = {
           group_name?: string;
           id?: number;
           is_online?: boolean;
-          leader_id?: number;
+          leader_id?: string;
           location?: string | null;
           max_members?: number;
           pinned_until?: string;
@@ -270,7 +270,7 @@ export type Database = {
             columns: ["leader_id"];
             isOneToOne: false;
             referencedRelation: "users";
-            referencedColumns: ["id"];
+            referencedColumns: ["user_id"];
           }
         ];
       };

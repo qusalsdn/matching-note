@@ -5,17 +5,17 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect, useState } from "react";
 import { supabase } from "@/utils/supabase/client";
 import toast from "react-hot-toast";
-import { getUserId } from "@/utils/supabase/getUser";
+import { getUserUuid } from "@/utils/supabase/getUser";
 import { useRouter } from "next/navigation";
 import { StudyGroupFormData, groupSchema } from "../types/studyGroup";
 import { StudyGroupForm } from "../components/StudyGroupForm";
 
-export default function GroupForm() {
+export default function StudyGroupCreate() {
   const router = useRouter();
   const form = useForm<StudyGroupFormData>({
     resolver: zodResolver(groupSchema),
     defaultValues: {
-      leader_id: 0,
+      leader_id: "",
       group_name: "",
       description: "",
       category: "프로그래밍",
@@ -25,14 +25,14 @@ export default function GroupForm() {
       status: "모집 중",
     },
   });
-  const [userId, setUserId] = useState(0);
+  const [userId, setUserId] = useState("");
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     const fetchUser = async () => {
-      const userId = await getUserId();
+      const userId = await getUserUuid();
 
-      if (typeof userId !== "number") return;
+      if (typeof userId !== "string") return;
 
       setUserId(userId);
       form.setValue("leader_id", userId);

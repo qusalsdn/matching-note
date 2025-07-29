@@ -5,7 +5,7 @@ export const status = ["모집 중", "진행 중", "종료"] as const;
 
 export const groupSchema = z
   .object({
-    leader_id: z.coerce.number().min(1),
+    leader_id: z.string(),
     group_name: z
       .string()
       .min(3, "스터디 그룹 이름은 3~30자 이내여야 합니다.")

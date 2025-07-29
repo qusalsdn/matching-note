@@ -14,9 +14,10 @@ interface StduyGroupFormProps {
   onSubmit: (data: StudyGroupFormData) => Promise<any>;
   submitButtonLabel: string;
   loading: boolean;
+  isEditMode?: boolean;
 }
 
-export function StudyGroupForm({ router, form, onSubmit, submitButtonLabel, loading }: StduyGroupFormProps) {
+export function StudyGroupForm({ router, form, onSubmit, submitButtonLabel, loading, isEditMode }: StduyGroupFormProps) {
   const isOnline = useWatch({
     control: form.control,
     name: "is_online",
@@ -65,7 +66,7 @@ export function StudyGroupForm({ router, form, onSubmit, submitButtonLabel, load
           render={({ field }) => (
             <FormItem>
               <FormLabel>카테고리</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
+              <Select onValueChange={field.onChange} defaultValue={field.value} disabled={isEditMode}>
                 <FormControl>
                   <SelectTrigger className="w-full">
                     <SelectValue placeholder="카테고리 선택" />
