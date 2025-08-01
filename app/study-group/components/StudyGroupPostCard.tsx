@@ -16,10 +16,12 @@ export default function StudyGroupPostCard({
   item,
   handleLike,
   handleBookmark,
+  increaseViewCount,
 }: {
   item: StudyGroup;
   handleLike: (id: number) => void;
   handleBookmark: (id: number) => void;
+  increaseViewCount: (id: number, viewCount: number) => void;
 }) {
   const userId = useAtomValue(userUuidAtom);
 
@@ -30,7 +32,7 @@ export default function StudyGroupPostCard({
   };
 
   return (
-    <Card className="hover:shadow-xl duration-300">
+    <Card className="hover:shadow-xl duration-300" onClick={() => increaseViewCount(item.id, item.view_count)}>
       <CardHeader>
         <CardTitle className="flex flex-col">
           <span

@@ -92,6 +92,11 @@ function StudyGroup() {
   const handleLike = (id: number) => toggleItem({ studyGroupId: id, key: "group_likes", table: "group_likes" });
   const handleBookmark = (id: number) => toggleItem({ studyGroupId: id, key: "group_bookmarks", table: "group_bookmarks" });
 
+  const increaseViewCount = async (id: number, viewCount: number) => {
+    const { error } = await supabase.from("study_groups").update({ view_count: ++viewCount }).eq("id", id);
+    if (error) return console.error(error);
+  };
+
   if (!category && !search) return <div className="text-center">페이지를 찾을 수 없습니다...</div>;
 
   return (
@@ -104,7 +109,12 @@ function StudyGroup() {
       {data?.map((item) => (
         <div key={item.id}>
           <Link href={`/study-group/${item.id}`}>
-            <StudyGroupPostCard item={item} handleLike={handleLike} handleBookmark={handleBookmark} />
+            <StudyGroupPostCard
+              item={item}
+              handleLike={handleLike}
+              handleBookmark={handleBookmark}
+              increaseViewCount={increaseViewCount}
+            />
           </Link>
         </div>
       ))}
