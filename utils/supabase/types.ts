@@ -35,7 +35,7 @@ export type Database = {
     Tables: {
       group_applications: {
         Row: {
-          applicant_id: number;
+          applicant_id: string;
           application_message: string;
           applied_at: string;
           group_id: number;
@@ -43,7 +43,7 @@ export type Database = {
           status: string;
         };
         Insert: {
-          applicant_id: number;
+          applicant_id: string;
           application_message: string;
           applied_at?: string;
           group_id: number;
@@ -51,7 +51,7 @@ export type Database = {
           status: string;
         };
         Update: {
-          applicant_id?: number;
+          applicant_id?: string;
           application_message?: string;
           applied_at?: string;
           group_id?: number;
@@ -64,7 +64,7 @@ export type Database = {
             columns: ["applicant_id"];
             isOneToOne: false;
             referencedRelation: "users";
-            referencedColumns: ["id"];
+            referencedColumns: ["user_id"];
           },
           {
             foreignKeyName: "group_applications_group_id_fkey";

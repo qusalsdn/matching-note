@@ -11,6 +11,7 @@ import toast from "react-hot-toast";
 import { HeartButton, StarButton } from "./IconButtons";
 import { useUserId } from "@/app/hooks/useUserId";
 import { useState } from "react";
+import { Button } from "@/components/ui/button";
 
 export type StudyGroupDetail = Database["public"]["Tables"]["study_groups"]["Row"] & {
   group_members: (Database["public"]["Tables"]["group_members"]["Row"] & {
@@ -18,6 +19,7 @@ export type StudyGroupDetail = Database["public"]["Tables"]["study_groups"]["Row
   })[];
   group_likes: Database["public"]["Tables"]["group_likes"]["Row"][];
   group_bookmarks: Database["public"]["Tables"]["group_bookmarks"]["Row"][];
+  group_applications: Database["public"]["Tables"]["group_applications"]["Row"][];
 };
 
 export default function StudyGroupDetail({ studyGroupId }: { studyGroupId: string }) {
@@ -28,7 +30,7 @@ export default function StudyGroupDetail({ studyGroupId }: { studyGroupId: strin
   const fetcher = async (studyGroupId: string) => {
     const { data } = await supabase
       .from("study_groups")
-      .select("*, group_members(*, users(id, username)), group_likes(*), group_bookmarks(*)")
+      .select("*, group_members(*, users(id, username)), group_likes(*), group_bookmarks(*), group_applications(*)")
       .eq("id", Number(studyGroupId))
       .single();
 
@@ -82,9 +84,43 @@ export default function StudyGroupDetail({ studyGroupId }: { studyGroupId: strin
   const handleLike = (id: number) => toggleItem({ studyGroupId: id, key: "group_likes", table: "group_likes" });
   const handleBookmark = (id: number) => toggleItem({ studyGroupId: id, key: "group_bookmarks", table: "group_bookmarks" });
 
+  const handleStudyGroupApplications = () => {
+    if (!data) return;
+
+    if (data.group_members.length >= data.max_members) return toast.error("현재 인원이 다 찼습니다..ㅜ");
+
+    router.push(`/study-group/applications/${studyGroupId}`);
+  };
+
+  const handleCancelStudyGroupApplications = async () => {
+    if (!data) return;
+
+    mutate(
+      async () => {
+        const updatedData = {
+          ...data,
+          group_applications: data.group_applications.filter((item) => item.applicant_id !== userId),
+        };
+
+        const { error } = await supabase
+          .from("group_applications")
+          .delete()
+          .eq("group_id", Number(studyGroupId))
+          .eq("applicant_id", userId);
+
+        if (error) throw error;
+
+        return updatedData;
+      },
+      { rollbackOnError: true, populateCache: true, revalidate: false }
+    );
+
+    if (error) return toast.error("가입 취소 중 오류가 발생하였습니다..ㅜ");
+  };
+
   if (error) {
     console.error(error);
-    return toast.error("서버에 오류가 발생하였습니다...ㅠ");
+    return toast.error("서버에 오류가 발생하였습니다..ㅜ");
   }
 
   return (
@@ -191,7 +227,7 @@ export default function StudyGroupDetail({ studyGroupId }: { studyGroupId: strin
             </Card>
           </CardContent>
 
-          <CardFooter>
+          <CardFooter className="flex items-center justify-between">
             <div className="flex items-center space-x-2 text-zinc-500 lg:text-sm text-xs">
               <div className="flex items-center space-x-1">
                 <Users className="w-4 h-4" />
@@ -206,6 +242,20 @@ export default function StudyGroupDetail({ studyGroupId }: { studyGroupId: strin
               <span>좋아요 {data?.group_likes.length.toLocaleString()}</span>
               <span>즐겨찾기 {data?.group_bookmarks.length.toLocaleString()}</span>
             </div>
+
+            {data?.leader_id !== userId && (
+              <div>
+                {data?.group_applications.some((item) => item.applicant_id === userId) ? (
+                  <Button type="button" variant={"destructive"} onClick={handleCancelStudyGroupApplications}>
+                    가입 취소
+                  </Button>
+                ) : (
+                  <Button type="button" onClick={handleStudyGroupApplications}>
+                    가입 신청
+                  </Button>
+                )}
+              </div>
+            )}
           </CardFooter>
         </Card>
       </section>
