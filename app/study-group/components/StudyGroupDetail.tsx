@@ -12,6 +12,8 @@ import { HeartButton, StarButton } from "./IconButtons";
 import { useUserId } from "@/app/hooks/useUserId";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { useAtomValue } from "jotai";
+import { userUuidAtom } from "@/atoms/authAtom";
 
 export type StudyGroupDetail = Database["public"]["Tables"]["study_groups"]["Row"] & {
   group_members: (Database["public"]["Tables"]["group_members"]["Row"] & {
@@ -24,7 +26,7 @@ export type StudyGroupDetail = Database["public"]["Tables"]["study_groups"]["Row
 
 export default function StudyGroupDetail({ studyGroupId }: { studyGroupId: string }) {
   const router = useRouter();
-  const userId = useUserId();
+  const userId = useUserId(useAtomValue(userUuidAtom));
   const [menuOpen, setMenuOpen] = useState(false);
 
   const fetcher = async (studyGroupId: string) => {
@@ -93,6 +95,7 @@ export default function StudyGroupDetail({ studyGroupId }: { studyGroupId: strin
   };
 
   const handleCancelStudyGroupApplications = async () => {
+    if (!userId) return toast.error("로그인을 해주세요.!");
     if (!data) return;
 
     mutate(

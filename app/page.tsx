@@ -46,7 +46,6 @@ const studyCategories = [
 export default function Home() {
   return (
     <div className="space-y-5">
-      {/* 스터디 카테고리 부분 */}
       <section>
         <div className="mt-2 grid grid-cols-3 gap-3">
           {studyCategories.map((item) => (
@@ -60,7 +59,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* 현재 인기 있는 스터디 그룹 */}
       <section className="bg-gray-50 p-3 rounded-md">
         <h2 className="text-center text-lg lg:text-2xl mb-3">🔥 현재 인기 있는 스터디 그룹 🔥</h2>
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">

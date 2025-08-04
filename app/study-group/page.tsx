@@ -9,12 +9,14 @@ import Link from "next/link";
 import { ChevronLeft } from "lucide-react";
 import useSWR from "swr";
 import { useUserId } from "../hooks/useUserId";
+import { useAtomValue } from "jotai";
+import { userUuidAtom } from "@/atoms/authAtom";
 
 function StudyGroup() {
   const router = useRouter();
   const category = useSearchParams().get("category");
   const search = useSearchParams().get("search");
-  const userId = useUserId();
+  const userId = useUserId(useAtomValue(userUuidAtom));
 
   const fetcher = async (category: string | null, search: string | null) => {
     if (category) {
