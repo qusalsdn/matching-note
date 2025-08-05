@@ -1,16 +1,21 @@
-import { useSetAtom } from "jotai";
+import { useEffect } from "react";
+import { useAtom } from "jotai";
 import { userUuidAtom } from "@/atoms/authAtom";
 import { getUserUuid } from "@/utils/supabase/getUser";
 
-export const useUserId = (userId: string) => {
-  const setUserId = useSetAtom(userUuidAtom);
+export const useUserId = () => {
+  const [userId, setUserId] = useAtom(userUuidAtom);
 
-  if (!userId) {
-    getUserUuid().then((uuid) => {
-      if (uuid) {
-        setUserId(uuid);
-        return uuid;
-      }
-    });
-  } else return userId;
+  useEffect(() => {
+    if (!userId) {
+      getUserUuid()
+        .then((uuid) => {
+          if (uuid) setUserId(uuid);
+        })
+        .catch((error) => console.error(error));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userId]);
+
+  return userId;
 };
