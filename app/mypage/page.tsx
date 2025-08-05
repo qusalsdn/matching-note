@@ -47,7 +47,7 @@ export default function MyPage() {
           <CardTitle>내 정보</CardTitle>
 
           <CardAction>
-            <div className="flex flex-col">
+            <div className="flex flex-col text-end">
               <span className="font-medium mt-1">가입일</span>
               <span>{formatDate(user?.created_at ?? "")}</span>
             </div>
@@ -62,7 +62,7 @@ export default function MyPage() {
 
           <div className="flex flex-col">
             <p className="font-medium mt-1">자기소개</p>
-            <p>{user?.bio}</p>
+            <p>{user?.bio ? user.bio : "자기소개가 없네요..ㅜ"}</p>
           </div>
         </CardContent>
       </Card>
