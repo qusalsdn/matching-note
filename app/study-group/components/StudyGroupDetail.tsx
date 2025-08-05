@@ -229,7 +229,7 @@ export default function StudyGroupDetail({ studyGroupId }: { studyGroupId: strin
           </CardContent>
 
           <CardFooter className="flex items-center justify-between">
-            <div className="grid grid-cols-3 gap-2 lg:flex lg:items-center lg:space-x-2 text-zinc-500 lg:text-sm text-xs">
+            <div className="grid grid-cols-3 gap-1 lg:flex lg:items-center lg:space-x-2 text-zinc-500 lg:text-sm text-xs">
               <div className="flex items-center space-x-1">
                 <Users className="w-4 h-4" />
                 <span>
