@@ -82,7 +82,20 @@ export default function StudyGroupDetail({ studyGroupId }: { studyGroupId: strin
   };
 
   const handleLike = (id: number) => toggleItem({ studyGroupId: id, key: "group_likes", table: "group_likes" });
+
   const handleBookmark = (id: number) => toggleItem({ studyGroupId: id, key: "group_bookmarks", table: "group_bookmarks" });
+
+  const handleStudyGroupDelete = async () => {
+    if (window.confirm("정말 삭제하시겠습니까?")) {
+      const { error } = await supabase.from("study_groups").delete().eq("id", Number(studyGroupId));
+
+      if (error) return toast.error("스터드 그룹 삭제 중 오류가 발생하였습니다..ㅜ");
+
+      toast.success("스터디 그룹이 삭제되었습니다.!");
+
+      router.replace("/");
+    }
+  };
 
   const handleStudyGroupApplications = () => {
     if (!data) return;
@@ -171,7 +184,10 @@ export default function StudyGroupDetail({ studyGroupId }: { studyGroupId: strin
                         <span>수정하기</span>
                       </div>
 
-                      <div className="w-full flex items-center justify-between cursor-pointer p-3 rounded-md hover:bg-zinc-100 duration-300">
+                      <div
+                        onClick={handleStudyGroupDelete}
+                        className="w-full flex items-center justify-between cursor-pointer p-3 rounded-md hover:bg-zinc-100 duration-300"
+                      >
                         <Trash2 className="w-5 h-5" />
                         <span>삭제하기</span>
                       </div>
