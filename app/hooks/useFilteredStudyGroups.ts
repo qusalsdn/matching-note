@@ -3,13 +3,12 @@ import { supabase } from "@/utils/supabase/client";
 import toast from "react-hot-toast";
 import useSWR from "swr";
 import { useUserId } from "./useUserId";
-import { useAtomValue } from "jotai";
-import { userUuidAtom } from "@/atoms/authAtom";
 
-export function useStudyGroups() {
-  const category = useSearchParams().get("category");
-  const search = useSearchParams().get("search");
-  const userId = useUserId(useAtomValue(userUuidAtom));
+export function useFilteredStudyGroups() {
+  const searchParams = useSearchParams();
+  const category = searchParams.get("category");
+  const search = searchParams.get("search");
+  const userId = useUserId();
 
   const fetcher = async (category: string | null, search: string | null) => {
     if (category) {
@@ -31,9 +30,6 @@ export function useStudyGroups() {
         .or(`group_name.ilike.%${search}%, description.ilike.%${search}%, category.ilike.%${search}%`);
 
       if (error) throw error;
-      return data;
-    } else if (!category && !search) {
-      const { data } = await supabase.from("study_groups").select("*, group_members(*), group_likes(*), group_bookmarks(*)");
       return data;
     } else {
       return null;

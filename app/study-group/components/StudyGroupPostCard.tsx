@@ -6,7 +6,7 @@ import { useAtomValue } from "jotai";
 import { userUuidAtom } from "@/atoms/authAtom";
 import { HeartButton, StarButton } from "./IconButtons";
 
-type StudyGroup = Database["public"]["Tables"]["study_groups"]["Row"] & {
+export type StudyGroup = Database["public"]["Tables"]["study_groups"]["Row"] & {
   group_members: Database["public"]["Tables"]["group_members"]["Row"][];
   group_likes: Database["public"]["Tables"]["group_likes"]["Row"][];
   group_bookmarks: Database["public"]["Tables"]["group_bookmarks"]["Row"][];

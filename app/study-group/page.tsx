@@ -5,11 +5,11 @@ import { Suspense } from "react";
 import StudyGroupPostCard from "./components/StudyGroupPostCard";
 import Link from "next/link";
 import { ChevronLeft } from "lucide-react";
-import { useStudyGroups } from "../hooks/useStudyGroups";
+import { useFilteredStudyGroups } from "../hooks/useFilteredStudyGroups";
 
 function StudyGroup() {
   const router = useRouter();
-  const { data, handleLike, handleBookmark, increaseViewCount, category, search } = useStudyGroups();
+  const { data, handleLike, handleBookmark, increaseViewCount, category, search } = useFilteredStudyGroups();
 
   if (!category && !search) return <div className="text-center">페이지를 찾을 수 없습니다...</div>;
 

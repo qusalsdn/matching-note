@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { supabase } from "@/utils/supabase/client";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useAtom } from "jotai";
-import { Search } from "lucide-react";
+import { Search, User } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
@@ -53,7 +53,6 @@ export default function Header() {
 
   return (
     <header className="mx-auto max-w-5xl px-5 lg:px-0 flex flex-col">
-      {/* 로고 및 로그아웃 부분 */}
       <section className="flex items-center justify-between">
         <div className="relative w-32 h-20">
           <Link href={"/"}>
@@ -64,9 +63,17 @@ export default function Header() {
         {isLoaded &&
           !shouldHideLoginButton &&
           (isLoggedIn ? (
-            <Button type="button" size={"sm"} onClick={handleLogout} className="bg-rose-500 hover:bg-rose-400">
-              로그아웃
-            </Button>
+            <div className="flex items-center space-x-3">
+              <Link href={"/mypage"}>
+                <div className="border-2 p-1 rounded-full shadow-md text-zinc-500">
+                  <User />
+                </div>
+              </Link>
+
+              <Button type="button" size={"sm"} onClick={handleLogout} className="bg-rose-500 hover:bg-rose-400">
+                로그아웃
+              </Button>
+            </div>
           ) : (
             <Link href={"/signin"}>
               <Button type="button" size={"sm"}>
@@ -76,7 +83,6 @@ export default function Header() {
           ))}
       </section>
 
-      {/* 검색 및 스터디 그룹 생성 부분 */}
       <section>
         <Form {...form}>
           <form
