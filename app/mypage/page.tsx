@@ -1,15 +1,15 @@
 "use client";
 
-import { Card, CardAction, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useUserId } from "../hooks/useUserId";
 import { useEffect, useState } from "react";
 import { supabase } from "@/utils/supabase/client";
 import { Database } from "@/utils/supabase/types";
-import { formatDate } from "@/utils/dateUtils";
 import Link from "next/link";
 import StudyGroupPostCard from "../study-group/components/StudyGroupPostCard";
 import { useOpenedStudyGroups } from "../hooks/useOpenedStudyGroups";
 import { useAppliedStudyGroups } from "../hooks/useAppliedStudyGroups";
+import Image from "next/image";
+import { User } from "lucide-react";
 
 type User = Database["public"]["Tables"]["users"]["Row"];
 
@@ -42,58 +42,54 @@ export default function MyPage() {
 
   return (
     <div className="space-y-10">
-      <Card className="shadow-md">
-        <CardHeader>
-          <CardTitle>내 정보</CardTitle>
+      <section>
+        <h1 className="text-lg font-bold mb-5">내 정보</h1>
 
-          <CardAction>
-            <div className="flex flex-col text-end">
-              <span className="font-medium mt-1">가입일</span>
-              <span>{formatDate(user?.created_at ?? "")}</span>
-            </div>
-          </CardAction>
-        </CardHeader>
+        <div className="flex space-x-3">
+          <div>
+            {user?.profile_image_url ? (
+              <Image src={user.profile_image_url} alt="userImage" />
+            ) : (
+              <div className="bg-zinc-100 rounded-full p-1">
+                <User size={30} className="text-zinc-500" />
+              </div>
+            )}
+          </div>
 
-        <CardContent className="space-y-5">
           <div className="flex flex-col">
-            <span className="font-medium mt-1">유저명</span>
             <span>{user?.username}</span>
+            <span className="text-zinc-500">{user?.bio ? user.bio : "자기소개가 없네요..ㅜ"}</span>
           </div>
+        </div>
+      </section>
 
-          <div className="flex flex-col">
-            <p className="font-medium mt-1">자기소개</p>
-            <p>{user?.bio ? user.bio : "자기소개가 없네요..ㅜ"}</p>
-          </div>
-        </CardContent>
-      </Card>
+      <hr />
 
-      <Card className="shadow-md">
-        <CardHeader>
-          <CardTitle>개설한 스터디 목록</CardTitle>
-        </CardHeader>
+      <section>
+        <h2 className="text-lg font-bold mb-5">개설한 스터디 목록</h2>
 
-        <CardContent>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 h-96 overflow-y-scroll">
           {openedStudy?.map((item) => (
             <Link key={item.id} href={`/study-group/${item.id}`}>
               <StudyGroupPostCard item={item} handleLike={handleLikeOpened} handleBookmark={handleBookmarkOpened} />
             </Link>
           ))}
-        </CardContent>
-      </Card>
+        </div>
+      </section>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>신청한 스터디 목록</CardTitle>
-        </CardHeader>
+      <hr />
 
-        <CardContent>
+      <section>
+        <h2 className="text-lg font-bold mb-5">신청한 스터디 목록</h2>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 h-96 overflow-y-scroll">
           {appliedStudy?.map((item) => (
             <Link key={item.id} href={`/study-group/${item.id}`}>
               <StudyGroupPostCard item={item} handleLike={handleLikeApplied} handleBookmark={handleBookmarkApplied} />
             </Link>
           ))}
-        </CardContent>
-      </Card>
+        </div>
+      </section>
     </div>
   );
 }
