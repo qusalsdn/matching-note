@@ -20,9 +20,9 @@ function StudyGroup() {
         {category && <span className="text-lg font-bold mb-1">{category}</span>}
       </section>
 
-      {data?.map((item) => (
-        <div key={item.id}>
-          <Link href={`/study-group/${item.id}`}>
+      <section className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+        {data?.map((item) => (
+          <Link key={item.id} href={`/study-group/${item.id}`}>
             <StudyGroupPostCard
               item={item}
               handleLike={handleLike}
@@ -30,8 +30,8 @@ function StudyGroup() {
               increaseViewCount={increaseViewCount}
             />
           </Link>
-        </div>
-      ))}
+        ))}
+      </section>
     </div>
   );
 }
