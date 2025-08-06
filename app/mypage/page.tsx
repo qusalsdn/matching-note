@@ -68,7 +68,7 @@ export default function MyPage() {
       <section>
         <h2 className="text-lg font-bold mb-5">개설한 스터디 목록</h2>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 h-96 overflow-y-scroll">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 h-96 overflow-y-auto">
           {openedStudy?.map((item) => (
             <Link key={item.id} href={`/study-group/${item.id}`}>
               <StudyGroupPostCard item={item} handleLike={handleLikeOpened} handleBookmark={handleBookmarkOpened} />
@@ -82,7 +82,7 @@ export default function MyPage() {
       <section>
         <h2 className="text-lg font-bold mb-5">신청한 스터디 목록</h2>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 h-96 overflow-y-scroll">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 h-96 overflow-y-auto">
           {appliedStudy?.map((item) => (
             <Link key={item.id} href={`/study-group/${item.id}`}>
               <StudyGroupPostCard item={item} handleLike={handleLikeApplied} handleBookmark={handleBookmarkApplied} />
