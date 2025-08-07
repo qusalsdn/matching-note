@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardAction, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatDate } from "@/utils/dateUtils";
 import { supabase } from "@/utils/supabase/client";
+import clsx from "clsx";
 import { ChevronLeft, User, Users } from "lucide-react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
@@ -33,14 +34,19 @@ export default function StudyManagement() {
 
   const { data, error, mutate } = useSWR(userId ? ["studyManagement", userId] : null, fetcher);
 
-  const handleAccept = async (id: number) => {
+  const handleAccept = async (id: number, group_id: number, user_id: string) => {
     mutate(
       async () => {
         const updatedData = data?.filter((item) => item.id !== id);
 
-        const { error } = await supabase.from("group_applications").update({ status: "승인됨" }).eq("id", id);
+        const { error: groupApplicationsError } = await supabase
+          .from("group_applications")
+          .update({ status: "승인됨" })
+          .eq("id", id);
 
-        if (error) throw error;
+        const { error: groupMembersError } = await supabase.from("group_members").insert({ group_id, user_id, role: "멤버" });
+
+        if (groupApplicationsError || groupMembersError) throw error;
 
         toast.success("수락되었습니다.!");
 
@@ -109,7 +115,14 @@ export default function StudyManagement() {
                 </CardContent>
 
                 <CardFooter className="flex items-end justify-between">
-                  <div className="flex items-center space-x-1 text-sm text-zinc-500">
+                  <div
+                    className={clsx(
+                      "flex items-center space-x-1 text-sm",
+                      item.study_groups.max_members === item.study_groups.group_members.length
+                        ? "text-red-500"
+                        : "text-emerald-500"
+                    )}
+                  >
                     <Users className="w-4 h-4" />
                     <span>
                       {item.study_groups.group_members.length.toLocaleString()}/{item.study_groups.max_members}
@@ -117,7 +130,11 @@ export default function StudyManagement() {
                   </div>
 
                   <div className="space-x-2">
-                    <Button type="button" className="bg-green-500 hover:bg-green-400" onClick={() => handleAccept(item.id)}>
+                    <Button
+                      type="button"
+                      className="bg-green-500 hover:bg-green-400"
+                      onClick={() => handleAccept(item.id, item.group_id, item.users.user_id)}
+                    >
                       수락
                     </Button>
 

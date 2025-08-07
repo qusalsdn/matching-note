@@ -5,6 +5,7 @@ import { Database } from "@/utils/supabase/types";
 import { useAtomValue } from "jotai";
 import { userUuidAtom } from "@/atoms/authAtom";
 import { HeartButton, StarButton } from "./IconButtons";
+import clsx from "clsx";
 
 export type StudyGroup = Database["public"]["Tables"]["study_groups"]["Row"] & {
   group_members: Database["public"]["Tables"]["group_members"]["Row"][];
@@ -68,17 +69,25 @@ export default function StudyGroupPostCard({
         <p className="truncate">{item.description}</p>
       </CardContent>
 
-      <CardFooter className="flex items-center space-x-2 text-zinc-500 lg:text-sm text-xs">
-        <div className="flex items-center space-x-1">
-          <Users className="w-4 h-4" />
-          <span>
-            {item.group_members.length.toLocaleString()}/{item.max_members}
-          </span>
+      <CardFooter className="flex items-center justify-between text-xs lg:text-sm">
+        <div className="flex items-center space-x-2 text-zinc-500">
+          <div
+            className={clsx(
+              "flex items-center space-x-1",
+              item.max_members === item.group_members.length ? "text-red-500" : "text-emerald-500"
+            )}
+          >
+            <Users className="w-4 h-4" />
+            <span>
+              {item.group_members.length.toLocaleString()}/{item.max_members}
+            </span>
+          </div>
+          <span>조회수 {item.view_count.toLocaleString()}</span>
+          <span>좋아요 {item.group_likes.length.toLocaleString()}</span>
+          <span>즐겨찾기 {item.group_bookmarks.length.toLocaleString()}</span>
         </div>
-        <span className={item.is_online ? "text-emerald-500" : "text-rose-500"}>{item.is_online ? "온라인" : "오프라인"}</span>
-        <span>조회수 {item.view_count.toLocaleString()}</span>
-        <span>좋아요 {item.group_likes.length.toLocaleString()}</span>
-        <span>즐겨찾기 {item.group_bookmarks.length.toLocaleString()}</span>
+
+        <span className="text-sky-500">{item.is_online ? "온라인" : "오프라인"}</span>
       </CardFooter>
     </Card>
   );
