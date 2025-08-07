@@ -10,6 +10,7 @@ import { useOpenedStudyGroups } from "../hooks/useOpenedStudyGroups";
 import { useAppliedStudyGroups } from "../hooks/useAppliedStudyGroups";
 import Image from "next/image";
 import { User } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 type User = Database["public"]["Tables"]["users"]["Row"];
 
@@ -40,26 +41,34 @@ export default function MyPage() {
     fetchUser();
   }, [userId]);
 
+  if (!userId) return <div className="text-center">로그인을 해주세요..</div>;
+
   return (
     <div className="space-y-10">
       <section>
         <h1 className="text-lg font-bold mb-5">내 정보</h1>
 
-        <div className="flex space-x-3">
-          <div>
-            {user?.profile_image_url ? (
-              <Image src={user.profile_image_url} alt="userImage" />
-            ) : (
-              <div className="bg-zinc-100 rounded-full p-1">
-                <User size={30} className="text-zinc-500" />
-              </div>
-            )}
+        <div className="flex items-start justify-between">
+          <div className="flex space-x-3">
+            <div>
+              {user?.profile_image_url ? (
+                <Image src={user.profile_image_url} alt="userImage" />
+              ) : (
+                <div className="bg-zinc-100 rounded-full p-1">
+                  <User size={30} className="text-zinc-500" />
+                </div>
+              )}
+            </div>
+
+            <div className="flex flex-col">
+              <span>{user?.username}</span>
+              <span className="text-zinc-500">{user?.bio ? user.bio : "자기소개가 없네요..ㅜ"}</span>
+            </div>
           </div>
 
-          <div className="flex flex-col">
-            <span>{user?.username}</span>
-            <span className="text-zinc-500">{user?.bio ? user.bio : "자기소개가 없네요..ㅜ"}</span>
-          </div>
+          <Link href={"/mypage/study-management"}>
+            <Button type="button">스터디 관리</Button>
+          </Link>
         </div>
       </section>
 

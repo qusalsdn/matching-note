@@ -12,7 +12,10 @@ export const groupSchema = z
       .max(30, "스터디 그룹 이름은 3~30자 이내여야 합니다."),
     description: z.string().min(3, "스터디 설명은 3~30자 이내여야 합니다.").max(200, "스터디 설명은 3~30자 이내여야 합니다."),
     category: z.enum(category),
-    max_members: z.coerce.number().min(2, "인원은 본인 포함 최소 2명 이상이어야 합니다."),
+    max_members: z.coerce
+      .number()
+      .min(2, "인원은 본인 포함 2~8명 이내여야 합니다.")
+      .max(8, "인원은 본인 포함 2~8명 이내여야 합니다."),
     is_online: z.boolean(),
     location: z.string().max(30).optional(),
     status: z.enum(status),
