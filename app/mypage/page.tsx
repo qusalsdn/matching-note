@@ -41,8 +41,6 @@ export default function MyPage() {
     fetchUser();
   }, [userId]);
 
-  if (!userId) return <div className="text-center">로그인을 해주세요..</div>;
-
   return (
     <div className="space-y-10">
       <section>

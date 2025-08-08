@@ -24,7 +24,7 @@ export async function updateSession(request: NextRequest) {
   } = await supabase.auth.getUser();
 
   const authPages = ["/signin", "/signUp"];
-  const protectedKeywords = ["create", "update", "delete"];
+  const protectedKeywords = ["create", "update", "delete", "applications", "mypage"];
   const pathname = request.nextUrl.pathname;
 
   if (user && authPages.includes(pathname)) return NextResponse.redirect(new URL("/", request.url));

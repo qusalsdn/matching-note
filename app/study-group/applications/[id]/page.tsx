@@ -1,14 +1,14 @@
 "use client";
 
+import { useUserId } from "@/app/hooks/useUserId";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/utils/supabase/client";
-import { getUserUuid } from "@/utils/supabase/getUser";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
-import { use, useEffect, useState } from "react";
+import { use, useState } from "react";
 import { useForm } from "react-hook-form";
 import toast from "react-hot-toast";
 import { z } from "zod";
@@ -30,24 +30,13 @@ type applicationsFormData = z.infer<typeof applicationsSchema>;
 export default function StudyGroupApplications({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter();
   const { id } = use(params);
+  const userId = useUserId();
   const form = useForm<applicationsFormData>({
     resolver: zodResolver(applicationsSchema),
-    defaultValues: { group_id: Number(id), application_message: "", status: "대기" },
+    defaultValues: { group_id: Number(id), applicant_id: userId, application_message: "", status: "대기" },
   });
 
   const [loading, setLoading] = useState(false);
-
-  useEffect(() => {
-    const fetchUser = async () => {
-      const userId = await getUserUuid();
-
-      if (typeof userId !== "string") return;
-
-      form.setValue("applicant_id", userId);
-    };
-
-    fetchUser();
-  }, [form]);
 
   const onSubmit = async (data: applicationsFormData) => {
     setLoading(true);
