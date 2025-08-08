@@ -79,9 +79,11 @@ export default function MyPage() {
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 h-96 overflow-y-auto">
           {openedStudy?.map((item) => (
-            <Link key={item.id} href={`/study-group/${item.id}`}>
-              <StudyGroupPostCard item={item} handleLike={handleLikeOpened} handleBookmark={handleBookmarkOpened} />
-            </Link>
+            <div key={item.id}>
+              <Link href={`/study-group/${item.id}`}>
+                <StudyGroupPostCard item={item} handleLike={handleLikeOpened} handleBookmark={handleBookmarkOpened} />
+              </Link>
+            </div>
           ))}
         </div>
       </section>
@@ -93,9 +95,11 @@ export default function MyPage() {
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 h-96 overflow-y-auto">
           {appliedStudy?.map((item) => (
-            <Link key={item.id} href={`/study-group/${item.id}`}>
-              <StudyGroupPostCard item={item} handleLike={handleLikeApplied} handleBookmark={handleBookmarkApplied} />
-            </Link>
+            <div key={item.id}>
+              <Link href={`/study-group/${item.id}`}>
+                <StudyGroupPostCard item={item} handleLike={handleLikeApplied} handleBookmark={handleBookmarkApplied} />
+              </Link>
+            </div>
           ))}
         </div>
       </section>
