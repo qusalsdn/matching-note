@@ -19,17 +19,15 @@ export default function StudyManagement() {
   const fetcher = async () => {
     const { data: studyGroups } = await supabase.from("study_groups").select("id").eq("leader_id", userId);
 
-    const StudyGroupsIds = studyGroups?.map((item) => item.id);
+    const StudyGroupsIds = studyGroups?.map((item) => item.id) ?? [];
 
-    if (StudyGroupsIds && StudyGroupsIds.length > 0) {
-      const { data } = await supabase
-        .from("group_applications")
-        .select("*, users(*), study_groups(*, group_members(*))")
-        .in("group_id", StudyGroupsIds)
-        .eq("status", "대기 중");
+    const { data } = await supabase
+      .from("group_applications")
+      .select("*, users(*), study_groups(*, group_members(*))")
+      .in("group_id", StudyGroupsIds)
+      .eq("status", "대기");
 
-      return data;
-    }
+    return data;
   };
 
   const { data, error, mutate } = useSWR(userId ? ["studyManagement", userId] : null, fetcher);
@@ -41,7 +39,7 @@ export default function StudyManagement() {
 
         const { error: groupApplicationsError } = await supabase
           .from("group_applications")
-          .update({ status: "승인됨" })
+          .update({ status: "승인" })
           .eq("id", id);
 
         const { error: groupMembersError } = await supabase.from("group_members").insert({ group_id, user_id, role: "멤버" });
@@ -61,7 +59,7 @@ export default function StudyManagement() {
       async () => {
         const updatedData = data?.filter((item) => item.id !== id);
 
-        const { error } = await supabase.from("group_applications").update({ status: "거절됨" }).eq("id", id);
+        const { error } = await supabase.from("group_applications").update({ status: "거절" }).eq("id", id);
 
         if (error) throw error;
 

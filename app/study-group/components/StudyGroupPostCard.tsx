@@ -1,5 +1,5 @@
 import { Card, CardAction, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Users } from "lucide-react";
+import { CircleCheck, CircleEllipsis, CircleX, Users } from "lucide-react";
 import { formatDate } from "@/utils/dateUtils";
 import { Database } from "@/utils/supabase/types";
 import { useAtomValue } from "jotai";
@@ -11,6 +11,7 @@ export type StudyGroup = Database["public"]["Tables"]["study_groups"]["Row"] & {
   group_members: Database["public"]["Tables"]["group_members"]["Row"][];
   group_likes: Database["public"]["Tables"]["group_likes"]["Row"][];
   group_bookmarks: Database["public"]["Tables"]["group_bookmarks"]["Row"][];
+  group_applications?: Database["public"]["Tables"]["group_applications"]["Row"][];
 };
 
 export default function StudyGroupPostCard({
@@ -25,6 +26,7 @@ export default function StudyGroupPostCard({
   increaseViewCount?: (id: number, viewCount: number) => void;
 }) {
   const userId = useAtomValue(userUuidAtom);
+  const status = item.group_applications?.find((application) => application.group_id === item.id)?.status;
 
   const handleIconClick = (e: React.MouseEvent, callback: (id: number) => void) => {
     e.stopPropagation();
@@ -50,6 +52,23 @@ export default function StudyGroupPostCard({
         </CardTitle>
 
         <CardAction className="flex flex-col items-end space-y-1">
+          {status && (
+            <div className="flex items-center space-x-1 text-sm">
+              <span className={clsx(status === "대기" ? "text-zinc-500" : status === "승인" ? "text-green-500" : "text-red-500")}>
+                {status}
+              </span>
+
+              <span>
+                {status === "대기" ? (
+                  <CircleEllipsis size={18} className="text-zinc-500" />
+                ) : status === "승인" ? (
+                  <CircleCheck size={18} className="text-green-500" />
+                ) : (
+                  <CircleX size={18} className="text-red-500" />
+                )}
+              </span>
+            </div>
+          )}
           <span className="lg:text-sm text-xs text-zinc-500">{formatDate(item.created_at)}</span>
           <div className="flex space-x-2">
             <HeartButton
@@ -87,7 +106,7 @@ export default function StudyGroupPostCard({
           <span>즐겨찾기 {item.group_bookmarks.length.toLocaleString()}</span>
         </div>
 
-        <span className="text-sky-500">{item.is_online ? "온라인" : "오프라인"}</span>
+        <span className={clsx(item.is_online ? "text-sky-500" : "text-zinc-500")}>{item.is_online ? "온라인" : "오프라인"}</span>
       </CardFooter>
     </Card>
   );

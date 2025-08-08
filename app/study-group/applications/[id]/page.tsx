@@ -13,7 +13,7 @@ import { useForm } from "react-hook-form";
 import toast from "react-hot-toast";
 import { z } from "zod";
 
-const status = ["대기 중", "승인됨", "거절됨"] as const;
+const status = ["대기", "승인", "거절"] as const;
 
 const applicationsSchema = z.object({
   group_id: z.number(),
@@ -32,7 +32,7 @@ export default function StudyGroupApplications({ params }: { params: Promise<{ i
   const { id } = use(params);
   const form = useForm<applicationsFormData>({
     resolver: zodResolver(applicationsSchema),
-    defaultValues: { group_id: Number(id), application_message: "", status: "대기 중" },
+    defaultValues: { group_id: Number(id), application_message: "", status: "대기" },
   });
 
   const [loading, setLoading] = useState(false);

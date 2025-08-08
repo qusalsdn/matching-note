@@ -15,7 +15,7 @@ export function useAppliedStudyGroups(userId: string) {
 
       const { data } = await supabase
         .from("study_groups")
-        .select("*, group_members(*), group_likes(*), group_bookmarks(*)")
+        .select("*, group_members(*), group_likes(*), group_bookmarks(*), group_applications(*)")
         .in("id", applicantIds);
 
       return data;
