@@ -260,7 +260,7 @@ export default function StudyGroupDetail({ studyGroupId }: { studyGroupId: strin
               <span>즐겨찾기 {data?.group_bookmarks.length.toLocaleString()}</span>
             </div>
 
-            {data?.leader_id !== userId && (
+            {userId && data?.leader_id !== userId && (
               <div>
                 {data?.group_applications.some((item) => item.applicant_id === userId) ? (
                   <Button type="button" variant={"destructive"} onClick={handleCancelStudyGroupApplications}>
