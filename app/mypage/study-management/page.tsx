@@ -86,64 +86,68 @@ export default function StudyManagement() {
         <div>
           <h2 className="text-lg font-bold mb-5">가입 신청받은 스터디 목록</h2>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 lg:h-52">
-            {data?.map((item) => (
-              <Card key={item.id}>
-                <CardHeader>
-                  <CardTitle>{item.study_groups.group_name}</CardTitle>
+          {data?.length === 0 ? (
+            <div className="text-center">가입 신청받은 스터디가 없습니다..</div>
+          ) : (
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 lg:h-52">
+              {data?.map((item) => (
+                <Card key={item.id}>
+                  <CardHeader>
+                    <CardTitle>{item.study_groups.group_name}</CardTitle>
 
-                  <CardAction className="text-xs text-zinc-500">{formatDate(item.study_groups.created_at)}</CardAction>
-                </CardHeader>
+                    <CardAction className="text-xs text-zinc-500">{formatDate(item.study_groups.created_at)}</CardAction>
+                  </CardHeader>
 
-                <CardContent className="text-sm lg:text-base">
-                  <div className="flex items-start space-x-2">
-                    {item.users.profile_image_url ? (
-                      <Image src={item.users.profile_image_url} alt="userImage" />
-                    ) : (
-                      <div className="bg-zinc-100 rounded-full p-1">
-                        <User size={20} className="text-zinc-500" />
+                  <CardContent className="text-sm lg:text-base">
+                    <div className="flex items-start space-x-2">
+                      {item.users.profile_image_url ? (
+                        <Image src={item.users.profile_image_url} alt="userImage" />
+                      ) : (
+                        <div className="bg-zinc-100 rounded-full p-1">
+                          <User size={20} className="text-zinc-500" />
+                        </div>
+                      )}
+
+                      <div>
+                        <span>{item.users.username}</span>
+                        <p>{item.application_message}</p>
                       </div>
-                    )}
-
-                    <div>
-                      <span>{item.users.username}</span>
-                      <p>{item.application_message}</p>
                     </div>
-                  </div>
-                </CardContent>
+                  </CardContent>
 
-                <CardFooter className="flex items-end justify-between">
-                  <div
-                    className={clsx(
-                      "flex items-center space-x-1 text-sm",
-                      item.study_groups.max_members === item.study_groups.group_members.length
-                        ? "text-red-500"
-                        : "text-emerald-500"
-                    )}
-                  >
-                    <Users className="w-4 h-4" />
-                    <span>
-                      {item.study_groups.group_members.length.toLocaleString()}/{item.study_groups.max_members}
-                    </span>
-                  </div>
-
-                  <div className="space-x-2">
-                    <Button
-                      type="button"
-                      className="bg-green-500 hover:bg-green-400"
-                      onClick={() => handleAccept(item.id, item.group_id, item.users.user_id)}
+                  <CardFooter className="flex items-end justify-between">
+                    <div
+                      className={clsx(
+                        "flex items-center space-x-1 text-sm",
+                        item.study_groups.max_members === item.study_groups.group_members.length
+                          ? "text-red-500"
+                          : "text-emerald-500"
+                      )}
                     >
-                      수락
-                    </Button>
+                      <Users className="w-4 h-4" />
+                      <span>
+                        {item.study_groups.group_members.length.toLocaleString()}/{item.study_groups.max_members}
+                      </span>
+                    </div>
 
-                    <Button type="button" className="bg-red-500 hover:bg-red-400" onClick={() => handleRefuse(item.id)}>
-                      거절
-                    </Button>
-                  </div>
-                </CardFooter>
-              </Card>
-            ))}
-          </div>
+                    <div className="space-x-2">
+                      <Button
+                        type="button"
+                        className="bg-green-500 hover:bg-green-400"
+                        onClick={() => handleAccept(item.id, item.group_id, item.users.user_id)}
+                      >
+                        수락
+                      </Button>
+
+                      <Button type="button" className="bg-red-500 hover:bg-red-400" onClick={() => handleRefuse(item.id)}>
+                        거절
+                      </Button>
+                    </div>
+                  </CardFooter>
+                </Card>
+              ))}
+            </div>
+          )}
         </div>
       </section>
     </div>

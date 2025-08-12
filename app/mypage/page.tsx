@@ -76,13 +76,17 @@ export default function MyPage() {
         <h2 className="text-lg font-bold mb-5">개설한 스터디 목록</h2>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 h-96 overflow-y-auto">
-          {openedStudy?.map((item) => (
-            <div key={item.id}>
-              <Link href={`/study-group/${item.id}`}>
-                <StudyGroupPostCard item={item} handleLike={handleLikeOpened} handleBookmark={handleBookmarkOpened} />
-              </Link>
-            </div>
-          ))}
+          {openedStudy?.length === 0 ? (
+            <div className="text-center">개설한 스터디가 없습니다..</div>
+          ) : (
+            openedStudy?.map((item) => (
+              <div key={item.id}>
+                <Link href={`/study-group/${item.id}`}>
+                  <StudyGroupPostCard item={item} handleLike={handleLikeOpened} handleBookmark={handleBookmarkOpened} />
+                </Link>
+              </div>
+            ))
+          )}
         </div>
       </section>
 
@@ -92,13 +96,17 @@ export default function MyPage() {
         <h2 className="text-lg font-bold mb-5">신청한 스터디 목록</h2>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 h-96 overflow-y-auto">
-          {appliedStudy?.map((item) => (
-            <div key={item.id}>
-              <Link href={`/study-group/${item.id}`}>
-                <StudyGroupPostCard item={item} handleLike={handleLikeApplied} handleBookmark={handleBookmarkApplied} />
-              </Link>
-            </div>
-          ))}
+          {appliedStudy?.length === 0 ? (
+            <div className="text-center">신청한 스터디가 없습니다..</div>
+          ) : (
+            appliedStudy?.map((item) => (
+              <div key={item.id}>
+                <Link href={`/study-group/${item.id}`}>
+                  <StudyGroupPostCard item={item} handleLike={handleLikeApplied} handleBookmark={handleBookmarkApplied} />
+                </Link>
+              </div>
+            ))
+          )}
         </div>
       </section>
     </div>
