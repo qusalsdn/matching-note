@@ -331,7 +331,7 @@ export type Database = {
           id?: number;
           location?: string | null;
           notes?: string | null;
-          start_time?: string;
+          start_time: string;
           title: string;
         };
         Update: {

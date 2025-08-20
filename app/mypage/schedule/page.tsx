@@ -12,6 +12,8 @@ import { supabase } from "@/utils/supabase/client";
 import { useUserId } from "@/app/hooks/useUserId";
 import toast from "react-hot-toast";
 import ScheduleDialog from "./components/ScheduleDialog";
+import useSWR from "swr";
+import { formatDateToYYYYMMDD, getCalendarEndDate } from "@/utils/dateUtils";
 
 type Schedule = Database["public"]["Tables"]["study_schedules"]["Row"];
 type StudyGroup = Database["public"]["Tables"]["study_groups"]["Row"];
@@ -32,8 +34,21 @@ export default function Schedule() {
   const router = useRouter();
   const userId = useUserId();
 
+  const fetcher = async (userId: string) => {
+    const { data: myGroups } = await supabase.from("group_members").select("group_id").eq("user_id", userId);
+
+    const groupIds = myGroups?.map((item) => item.group_id);
+
+    const { data } = await supabase
+      .from("study_schedules")
+      .select("*")
+      .in("group_id", groupIds ?? []);
+
+    return data;
+  };
+  const { data } = useSWR(userId, fetcher);
+
   const [currentTitle, setCurrentTitle] = useState("");
-  const [events, setEvents] = useState<Schedule[]>([]);
   const [myStudyGroup, setMyStudyGroup] = useState<StudyGroup[]>([]);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -42,9 +57,7 @@ export default function Schedule() {
 
   useEffect(() => {
     const api = calendarRef.current?.getApi();
-    if (api) {
-      setCurrentTitle(api.view.title);
-    }
+    if (api) setCurrentTitle(api.view.title);
   }, []);
 
   useEffect(() => {
@@ -60,7 +73,7 @@ export default function Schedule() {
       id: String(item.id),
       title: item.title,
       start: item.start_time,
-      end: item.end_time ?? undefined,
+      end: item.end_time ? getCalendarEndDate(item.end_time) : undefined,
       extendedProps: {
         groupId: item.group_id,
         location: item.location,
@@ -96,16 +109,17 @@ export default function Schedule() {
   };
 
   const onSubmit = async (data: ScheduleForm) => {
-    const { date, ...rest } = data;
     setLoading(true);
+
+    const { date, ...rest } = data;
 
     try {
       const { error } = await supabase.from("study_schedules").insert({
         ...rest,
         group_id: Number(data.group_id),
         creator_id: userId,
-        start_time: date?.from.toISOString(),
-        end_time: date?.to?.toISOString(),
+        start_time: formatDateToYYYYMMDD(date?.from ?? new Date()),
+        end_time: formatDateToYYYYMMDD(date?.to ?? new Date()),
       });
 
       if (error) {
@@ -170,7 +184,7 @@ export default function Schedule() {
             initialView="dayGridMonth"
             selectable={true}
             editable={true}
-            events={mapToEventInput(events)}
+            events={mapToEventInput(data ?? [])}
             dateClick={handleDateClick}
             headerToolbar={{
               left: "",
@@ -181,7 +195,6 @@ export default function Schedule() {
             datesSet={handleDatesSet}
             height={"100%"}
             contentHeight={"100%"}
-            dayMaxEventRows={3}
           />
         </div>
       </section>
