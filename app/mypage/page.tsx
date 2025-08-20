@@ -64,9 +64,15 @@ export default function MyPage() {
             </div>
           </div>
 
-          <Link href={"/mypage/study-management"}>
-            <Button type="button">스터디 관리</Button>
-          </Link>
+          <div className="flex flex-col items-center space-y-3">
+            <Link href={"/mypage/schedule"}>
+              <Button type="button">일정 관리</Button>
+            </Link>
+
+            <Link href={"/mypage/study-management"}>
+              <Button type="button">스터디 관리</Button>
+            </Link>
+          </div>
         </div>
       </section>
 

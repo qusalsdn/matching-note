@@ -1,7 +1,7 @@
 export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[];
 
 export type Database = {
-  // Allows to automatically instanciate createClient with right options
+  // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
     PostgrestVersion: "12.2.3 (519615d)";
@@ -16,10 +16,10 @@ export type Database = {
     Functions: {
       graphql: {
         Args: {
+          extensions?: Json;
           operationName?: string;
           query?: string;
           variables?: Json;
-          extensions?: Json;
         };
         Returns: Json;
       };
@@ -221,6 +221,45 @@ export type Database = {
           }
         ];
       };
+      schedule_attendances: {
+        Row: {
+          id: number;
+          responded_at: string;
+          schedule_id: number;
+          status: boolean;
+          user_id: string;
+        };
+        Insert: {
+          id?: number;
+          responded_at?: string;
+          schedule_id: number;
+          status: boolean;
+          user_id: string;
+        };
+        Update: {
+          id?: number;
+          responded_at?: string;
+          schedule_id?: number;
+          status?: boolean;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "schedule_attendances_schedule_id_fkey";
+            columns: ["schedule_id"];
+            isOneToOne: false;
+            referencedRelation: "study_schedules";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "schedule_attendances_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "users";
+            referencedColumns: ["user_id"];
+          }
+        ];
+      };
       study_groups: {
         Row: {
           category: string;
@@ -276,7 +315,8 @@ export type Database = {
       };
       study_schedules: {
         Row: {
-          end_time: string;
+          creator_id: string;
+          end_time: string | null;
           group_id: number;
           id: number;
           location: string | null;
@@ -285,7 +325,8 @@ export type Database = {
           title: string;
         };
         Insert: {
-          end_time?: string;
+          creator_id: string;
+          end_time?: string | null;
           group_id: number;
           id?: number;
           location?: string | null;
@@ -294,7 +335,8 @@ export type Database = {
           title: string;
         };
         Update: {
-          end_time?: string;
+          creator_id?: string;
+          end_time?: string | null;
           group_id?: number;
           id?: number;
           location?: string | null;
@@ -303,6 +345,13 @@ export type Database = {
           title?: string;
         };
         Relationships: [
+          {
+            foreignKeyName: "study_schedules_creator_id_fkey";
+            columns: ["creator_id"];
+            isOneToOne: false;
+            referencedRelation: "users";
+            referencedColumns: ["user_id"];
+          },
           {
             foreignKeyName: "study_schedules_group_id_fkey";
             columns: ["group_id"];
