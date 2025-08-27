@@ -21,7 +21,8 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { supabase } from "@/utils/supabase/client";
 import { formatDateToYYYYMMDD } from "@/utils/dateUtils";
 import toast from "react-hot-toast";
-import { StudyGroup } from "../page";
+import { StudyGroup, StudySchedule } from "../page";
+import { KeyedMutator } from "swr";
 
 export const scheduleSchema = z.object({
   group_id: z.string({ message: "스터디 그룹을 선택해주세요." }),
@@ -44,9 +45,23 @@ type ScheduleDialogProps = {
   onOpenChange: (open: boolean) => void;
   myStudyGroup: StudyGroup[];
   userId: string;
+  data: StudySchedule[] | null | undefined;
+  mutate: KeyedMutator<
+    | {
+        creator_id: string;
+        end_time: string | null;
+        group_id: number;
+        id: number;
+        location: string | null;
+        notes: string | null;
+        start_time: string;
+        title: string;
+      }[]
+    | null
+  >;
 };
 
-export default function ScheduleCreateDialog({ open, onOpenChange, myStudyGroup, userId }: ScheduleDialogProps) {
+export default function ScheduleCreateDialog({ open, onOpenChange, myStudyGroup, userId, mutate }: ScheduleDialogProps) {
   const form = useForm<ScheduleForm>({
     resolver: zodResolver(scheduleSchema),
     defaultValues: {
@@ -61,11 +76,6 @@ export default function ScheduleCreateDialog({ open, onOpenChange, myStudyGroup,
 
   const [date, setDate] = useState<DateRange>({ from: new Date() });
   const [loading, setLoading] = useState(false);
-
-  const handleSubmit = async (data: ScheduleForm) => {
-    await onSubmit(data);
-    handleReset();
-  };
 
   const handleReset = () => {
     form.reset();
@@ -91,10 +101,11 @@ export default function ScheduleCreateDialog({ open, onOpenChange, myStudyGroup,
         end_time: formatDateToYYYYMMDD(date?.to ?? new Date()),
       });
 
-      if (error) {
-        toast.error("일정 생성 중 오류가 발생하였습니다..ㅜ");
-        return;
-      }
+      if (error) throw error;
+
+      handleReset();
+
+      await mutate();
 
       onOpenChange(false);
 
@@ -116,7 +127,7 @@ export default function ScheduleCreateDialog({ open, onOpenChange, myStudyGroup,
         </DialogHeader>
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(handleSubmit)}>
+          <form onSubmit={form.handleSubmit(onSubmit)}>
             <div className="space-y-4 max-h-96 py-5 overflow-auto">
               <FormField
                 control={form.control}

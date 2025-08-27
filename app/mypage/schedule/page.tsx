@@ -114,6 +114,8 @@ export default function Schedule() {
           onOpenChange={setCreateDialogOpen}
           myStudyGroup={myStudyGroup}
           userId={userId}
+          data={data}
+          mutate={mutate}
         />
       </section>
 

@@ -91,11 +91,6 @@ export default function ScheduleDialog({
     }
   }, [form, studySchedule]);
 
-  const handleSubmit = async (data: ScheduleForm) => {
-    await onSubmit(data);
-    handleReset();
-  };
-
   const handleReset = () => {
     form.reset();
     setDate({ from: new Date() });
@@ -139,6 +134,8 @@ export default function ScheduleDialog({
 
           if (error) throw error;
 
+          handleReset();
+
           onOpenChange(false);
 
           toast.success("일정이 수정되었습니다.!");
@@ -164,7 +161,7 @@ export default function ScheduleDialog({
         </DialogHeader>
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(handleSubmit)}>
+          <form onSubmit={form.handleSubmit(onSubmit)}>
             <div className="space-y-4 max-h-96 py-5 overflow-auto">
               <FormLabel>스터디 그룹</FormLabel>
               <Select value={studySchedule?.group_id.toString()} disabled>
