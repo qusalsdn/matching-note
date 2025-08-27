@@ -10,25 +10,12 @@ import { Button } from "@/components/ui/button";
 import { Database } from "@/utils/supabase/types";
 import { supabase } from "@/utils/supabase/client";
 import { useUserId } from "@/app/hooks/useUserId";
-import toast from "react-hot-toast";
-import ScheduleDialog from "./components/ScheduleDialog";
+import ScheduleCreateDialog from "./components/ScheduleCreateDialog";
 import useSWR from "swr";
-import { formatDateToYYYYMMDD, getCalendarEndDate } from "@/utils/dateUtils";
+import { getCalendarEndDate } from "@/utils/dateUtils";
 
 type Schedule = Database["public"]["Tables"]["study_schedules"]["Row"];
 type StudyGroup = Database["public"]["Tables"]["study_groups"]["Row"];
-
-type ScheduleForm = {
-  group_id: string;
-  creator_id: string;
-  title: string;
-  date: {
-    from: Date;
-    to?: Date;
-  } | null;
-  notes?: string;
-  location?: string;
-};
 
 export default function Schedule() {
   const router = useRouter();
@@ -50,8 +37,7 @@ export default function Schedule() {
 
   const [currentTitle, setCurrentTitle] = useState("");
   const [myStudyGroup, setMyStudyGroup] = useState<StudyGroup[]>([]);
-  const [dialogOpen, setDialogOpen] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [createDialogOpen, setCreateDialogOpen] = useState(false);
 
   const calendarRef = useRef<FullCalendar>(null);
 
@@ -108,36 +94,6 @@ export default function Schedule() {
     console.log(arg);
   };
 
-  const onSubmit = async (data: ScheduleForm) => {
-    setLoading(true);
-
-    const { date, ...rest } = data;
-
-    try {
-      const { error } = await supabase.from("study_schedules").insert({
-        ...rest,
-        group_id: Number(data.group_id),
-        creator_id: userId,
-        start_time: formatDateToYYYYMMDD(date?.from ?? new Date()),
-        end_time: formatDateToYYYYMMDD(date?.to ?? new Date()),
-      });
-
-      if (error) {
-        toast.error("일정 생성 중 오류가 발생하였습니다..ㅜ");
-        return;
-      }
-
-      setDialogOpen(false);
-
-      toast.success("일정이 생성되었습니다.!");
-    } catch (error) {
-      console.error(error);
-      toast.error("일정 생성 중 오류가 발생하였습니다..ㅜ");
-    } finally {
-      setLoading(false);
-    }
-  };
-
   return (
     <div className="space-y-5">
       <section className="mb-5 flex items-center justify-between">
@@ -146,15 +102,13 @@ export default function Schedule() {
           <span className="text-lg font-bold mb-1">일정 관리</span>
         </div>
 
-        <Button onClick={() => setDialogOpen(true)}>일정 생성</Button>
+        <Button onClick={() => setCreateDialogOpen(true)}>일정 생성</Button>
 
-        <ScheduleDialog
-          open={dialogOpen}
-          onOpenChange={setDialogOpen}
+        <ScheduleCreateDialog
+          open={createDialogOpen}
+          onOpenChange={setCreateDialogOpen}
           myStudyGroup={myStudyGroup}
           userId={userId}
-          onSubmit={onSubmit}
-          loading={loading}
         />
       </section>
 
@@ -171,7 +125,7 @@ export default function Schedule() {
               <ChevronLeft />
             </Button>
 
-            <Button type="button" onClick={handleNext} disabled={loading}>
+            <Button type="button" onClick={handleNext}>
               <ChevronRight />
             </Button>
           </div>
