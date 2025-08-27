@@ -142,8 +142,6 @@ input[type="number"] {
 }
 
 .fc-event {
-  background-color: black !important;
-  color: white !important;
   border: none !important;
   border-radius: 3px;
   font-size: x-small;

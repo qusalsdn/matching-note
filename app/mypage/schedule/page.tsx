@@ -41,6 +41,7 @@ export default function Schedule() {
   const { data, mutate } = useSWR(userId, fetcher);
 
   const [currentTitle, setCurrentTitle] = useState("");
+  const [myCreateStudyGroup, setMyCreateStudyGroup] = useState<StudyGroup[]>([]);
   const [myStudyGroup, setMyStudyGroup] = useState<StudyGroup[]>([]);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [studySchedule, setStudySchedule] = useState<StudySchedule | null>(null);
@@ -61,14 +62,24 @@ export default function Schedule() {
     fetchStudyGroup();
   }, [studyGroupIds]);
 
+  useEffect(() => {
+    const fetchStudyGroup = async () => {
+      const { data } = await supabase.from("study_groups").select("*").eq("leader_id", userId);
+      if (data) setMyCreateStudyGroup(data);
+    };
+    fetchStudyGroup();
+  }, [userId]);
+
   const mapToEventInput = (apiEvents: StudySchedule[]) => {
-    return apiEvents.map((item: StudySchedule) => ({
+    return apiEvents.map((item) => ({
       id: String(item.id),
       title: item.title,
       start: item.start_time,
       end: item.end_time ? getCalendarEndDate(item.end_time) : undefined,
+      backgroundColor: item.creator_id === userId ? "#3B82F6" : "#22C55E",
       extendedProps: {
         groupId: item.group_id,
+        creator_id: item.creator_id,
         location: item.location,
         notes: item.notes,
       },
@@ -116,7 +127,7 @@ export default function Schedule() {
         <ScheduleCreateDialog
           open={createDialogOpen}
           onOpenChange={setCreateDialogOpen}
-          myStudyGroup={myStudyGroup}
+          myStudyGroup={myCreateStudyGroup}
           userId={userId}
           data={data}
           mutate={mutate}
@@ -135,7 +146,7 @@ export default function Schedule() {
         />
       </section>
 
-      <section>
+      <section className="space-y-3">
         <div className="flex items-center justify-between space-x-3">
           <Button type="button" onClick={handleToday}>
             오늘
@@ -151,6 +162,18 @@ export default function Schedule() {
             <Button type="button" onClick={handleNext}>
               <ChevronRight />
             </Button>
+          </div>
+        </div>
+
+        <div className="flex items-center justify-end -mb-3 space-x-2">
+          <div className="flex items-center space-x-1">
+            <div className="w-4 h-4 bg-blue-500 rounded-sm"></div>
+            <span>생성한 스터디</span>
+          </div>
+
+          <div className="flex items-center space-x-1">
+            <div className="w-4 h-4 bg-green-500 rounded-sm"></div>
+            <span>참여한 스터디</span>
           </div>
         </div>
 

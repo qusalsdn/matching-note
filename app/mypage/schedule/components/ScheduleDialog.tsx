@@ -170,7 +170,7 @@ export default function ScheduleDialog({
 
           if (error) throw new Error("일정 삭제 중 오류가 발생하였습니다..ㅜ");
 
-          if (data.length >= 0) throw new Error("자신이 생성한 일정만 삭제 가능합니다.!");
+          if (data.length <= 0) throw new Error("자신이 생성한 일정만 삭제 가능합니다.!");
 
           handleReset();
 
