@@ -72,6 +72,7 @@ export default function ScheduleDialog({
   });
 
   const [date, setDate] = useState<DateRange>({ from: new Date() });
+  const [disabled, setDisabled] = useState(true);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -91,6 +92,10 @@ export default function ScheduleDialog({
       });
     }
   }, [form, studySchedule]);
+
+  useEffect(() => {
+    setDisabled(studySchedule?.creator_id !== userId ? true : false);
+  }, [studySchedule?.creator_id, userId]);
 
   const handleReset = () => {
     form.reset();
@@ -221,7 +226,7 @@ export default function ScheduleDialog({
                   <FormItem>
                     <FormLabel>제목</FormLabel>
                     <FormControl>
-                      <Input {...field} className="text-sm" />
+                      <Input {...field} className="text-sm" disabled={disabled} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -246,6 +251,7 @@ export default function ScheduleDialog({
                         }}
                         className="rounded-md border shadow-md mx-auto max-w-xs"
                         captionLayout="dropdown"
+                        disabled={disabled}
                       />
                     </FormControl>
                     <FormMessage />
@@ -260,7 +266,7 @@ export default function ScheduleDialog({
                   <FormItem>
                     <FormLabel>노트</FormLabel>
                     <FormControl>
-                      <Textarea {...field} className="text-sm" />
+                      <Textarea {...field} className="text-sm" disabled={disabled} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -274,7 +280,7 @@ export default function ScheduleDialog({
                   <FormItem>
                     <FormLabel>장소</FormLabel>
                     <FormControl>
-                      <Input {...field} className="text-sm" />
+                      <Input {...field} className="text-sm" disabled={disabled} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -284,12 +290,7 @@ export default function ScheduleDialog({
 
             <div className="mt-3 flex justify-between">
               <div>
-                <Button
-                  type="button"
-                  variant={"destructive"}
-                  onClick={handleStudyScheduleDelete}
-                  disabled={studySchedule?.creator_id !== userId}
-                >
+                <Button type="button" variant={"destructive"} onClick={handleStudyScheduleDelete} disabled={disabled}>
                   {loading ? "..." : "삭제"}
                 </Button>
               </div>
@@ -299,7 +300,7 @@ export default function ScheduleDialog({
                   취소
                 </Button>
 
-                <Button type="submit" disabled={loading || studySchedule?.creator_id !== userId}>
+                <Button type="submit" disabled={loading || disabled}>
                   {loading ? "..." : "수정"}
                 </Button>
               </div>
