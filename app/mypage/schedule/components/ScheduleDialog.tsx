@@ -1,30 +1,22 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { DateRange } from "react-day-picker";
-import {
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Calendar } from "@/components/ui/calendar";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Database } from "@/utils/supabase/types";
-
-type StudyGroup = Database["public"]["Tables"]["study_groups"]["Row"];
+import { StudyGroup, StudySchedule } from "../page";
+import { supabase } from "@/utils/supabase/client";
+import toast from "react-hot-toast";
+import { formatDateToYYYYMMDD } from "@/utils/dateUtils";
+import { KeyedMutator } from "swr";
 
 const scheduleSchema = z.object({
-  group_id: z.string({ message: "스터디 그룹을 선택해주세요." }),
-  creator_id: z.string(),
   title: z.string().min(3, "제목은 3~20자 이내여야 합니다.").max(20, "제목은 3~20자 이내여야 합니다."),
   date: z
     .object({
@@ -39,27 +31,38 @@ const scheduleSchema = z.object({
 type ScheduleForm = z.infer<typeof scheduleSchema>;
 
 type ScheduleDialogProps = {
+  studySchedule: StudySchedule | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
   myStudyGroup: StudyGroup[];
   userId: string;
-  onSubmit: (data: ScheduleForm) => Promise<void>;
-  loading?: boolean;
+  data: StudySchedule[] | null | undefined;
+  mutate: KeyedMutator<
+    | {
+        creator_id: string;
+        end_time: string | null;
+        group_id: number;
+        id: number;
+        location: string | null;
+        notes: string | null;
+        start_time: string;
+        title: string;
+      }[]
+    | null
+  >;
 };
 
 export default function ScheduleDialog({
+  studySchedule,
   open,
   onOpenChange,
   myStudyGroup,
-  userId,
-  onSubmit,
-  loading = false,
+  data: studySchedules,
+  mutate,
 }: ScheduleDialogProps) {
   const form = useForm<ScheduleForm>({
     resolver: zodResolver(scheduleSchema),
     defaultValues: {
-      group_id: undefined,
-      creator_id: userId,
       title: "",
       date: { from: new Date() },
       notes: "",
@@ -68,6 +71,25 @@ export default function ScheduleDialog({
   });
 
   const [date, setDate] = useState<DateRange>({ from: new Date() });
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (studySchedule) {
+      form.reset({
+        title: studySchedule.title,
+        date: {
+          from: new Date(studySchedule.start_time),
+          to: studySchedule.end_time ? new Date(studySchedule.end_time) : undefined,
+        },
+        notes: studySchedule.notes ?? "",
+        location: studySchedule.location ?? "",
+      });
+      setDate({
+        from: new Date(studySchedule.start_time),
+        to: studySchedule.end_time ? new Date(studySchedule.end_time) : undefined,
+      });
+    }
+  }, [form, studySchedule]);
 
   const handleSubmit = async (data: ScheduleForm) => {
     await onSubmit(data);
@@ -84,41 +106,79 @@ export default function ScheduleDialog({
     onOpenChange(false);
   };
 
+  const onSubmit = async (data: ScheduleForm) => {
+    setLoading(true);
+
+    const { date, ...rest } = data;
+
+    try {
+      await mutate(
+        async () => {
+          const updatedData = studySchedules?.map((item) =>
+            item.group_id === studySchedule?.group_id
+              ? {
+                  ...item,
+                  title: data.title,
+                  start_time: formatDateToYYYYMMDD(data.date?.from ?? new Date()),
+                  end_time: data.date?.to ? formatDateToYYYYMMDD(data.date?.to ?? new Date()) : null,
+                  notes: data.notes ?? null,
+                  location: data.location ?? null,
+                }
+              : item
+          );
+
+          const { error } = await supabase
+            .from("study_schedules")
+            .update({
+              ...rest,
+              start_time: formatDateToYYYYMMDD(date?.from ?? new Date()),
+              end_time: formatDateToYYYYMMDD(date?.to ?? new Date()),
+            })
+            .eq("group_id", studySchedule?.group_id ?? 0)
+            .eq("creator_id", studySchedule?.creator_id ?? "");
+
+          if (error) throw error;
+
+          onOpenChange(false);
+
+          toast.success("일정이 수정되었습니다.!");
+
+          return updatedData;
+        },
+        { rollbackOnError: true, populateCache: true, revalidate: false }
+      );
+    } catch (error) {
+      console.error(error);
+      toast.error("일정 수정 중 오류가 발생하였습니다..ㅜ");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle>일정 생성</DialogTitle>
+          <DialogTitle>일정 수정</DialogTitle>
           <DialogDescription>일정의 정보를 입력해주세요.</DialogDescription>
         </DialogHeader>
 
         <Form {...form}>
           <form onSubmit={form.handleSubmit(handleSubmit)}>
             <div className="space-y-4 max-h-96 py-5 overflow-auto">
-              <FormField
-                control={form.control}
-                name="group_id"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>스터디 그룹</FormLabel>
-                    <Select onValueChange={field.onChange}>
-                      <FormControl>
-                        <SelectTrigger className="w-full">
-                          <SelectValue placeholder="스터디 그룹 선택" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {myStudyGroup.map((item) => (
-                          <SelectItem key={item.id} value={item.id.toString()}>
-                            {item.group_name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              <FormLabel>스터디 그룹</FormLabel>
+              <Select value={studySchedule?.group_id.toString()} disabled>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="스터디 그룹 선택" />
+                </SelectTrigger>
+                <SelectContent>
+                  {myStudyGroup.map((item) => (
+                    <SelectItem key={item.id} value={item.id.toString()}>
+                      {item.group_name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
 
               <FormField
                 control={form.control}
@@ -188,17 +248,23 @@ export default function ScheduleDialog({
               />
             </div>
 
-            <DialogFooter className="mt-3">
-              <DialogClose asChild>
-                <Button variant="outline" onClick={handleClose}>
+            <div className="mt-3 flex justify-between">
+              <div>
+                <Button type="button" variant={"destructive"}>
+                  삭제
+                </Button>
+              </div>
+
+              <div className="space-x-2">
+                <Button type="button" variant="outline" onClick={handleClose}>
                   취소
                 </Button>
-              </DialogClose>
 
-              <Button type="submit" disabled={loading}>
-                {loading ? "생성 중..." : "생성"}
-              </Button>
-            </DialogFooter>
+                <Button type="submit" disabled={loading}>
+                  {loading ? "수정 중..." : "수정"}
+                </Button>
+              </div>
+            </div>
           </form>
         </Form>
       </DialogContent>

@@ -18,12 +18,10 @@ import { Calendar } from "@/components/ui/calendar";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Database } from "@/utils/supabase/types";
 import { supabase } from "@/utils/supabase/client";
 import { formatDateToYYYYMMDD } from "@/utils/dateUtils";
 import toast from "react-hot-toast";
-
-export type StudyGroup = Database["public"]["Tables"]["study_groups"]["Row"];
+import { StudyGroup } from "../page";
 
 export const scheduleSchema = z.object({
   group_id: z.string({ message: "스터디 그룹을 선택해주세요." }),
@@ -46,7 +44,6 @@ type ScheduleDialogProps = {
   onOpenChange: (open: boolean) => void;
   myStudyGroup: StudyGroup[];
   userId: string;
-  loading?: boolean;
 };
 
 export default function ScheduleCreateDialog({ open, onOpenChange, myStudyGroup, userId }: ScheduleDialogProps) {

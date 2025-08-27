@@ -13,9 +13,10 @@ import { useUserId } from "@/app/hooks/useUserId";
 import ScheduleCreateDialog from "./components/ScheduleCreateDialog";
 import useSWR from "swr";
 import { getCalendarEndDate } from "@/utils/dateUtils";
+import ScheduleDialog from "./components/ScheduleDialog";
 
-type Schedule = Database["public"]["Tables"]["study_schedules"]["Row"];
-type StudyGroup = Database["public"]["Tables"]["study_groups"]["Row"];
+export type StudySchedule = Database["public"]["Tables"]["study_schedules"]["Row"];
+export type StudyGroup = Database["public"]["Tables"]["study_groups"]["Row"];
 
 export default function Schedule() {
   const router = useRouter();
@@ -33,11 +34,13 @@ export default function Schedule() {
 
     return data;
   };
-  const { data } = useSWR(userId, fetcher);
+  const { data, mutate } = useSWR(userId, fetcher);
 
   const [currentTitle, setCurrentTitle] = useState("");
   const [myStudyGroup, setMyStudyGroup] = useState<StudyGroup[]>([]);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
+  const [studySchedule, setStudySchedule] = useState<StudySchedule | null>(null);
+  const [dialogOpen, setDialogOpen] = useState(false);
 
   const calendarRef = useRef<FullCalendar>(null);
 
@@ -54,8 +57,8 @@ export default function Schedule() {
     fetchStudyGroup();
   }, [userId]);
 
-  const mapToEventInput = (apiEvents: Schedule[]) => {
-    return apiEvents.map((item: Schedule) => ({
+  const mapToEventInput = (apiEvents: StudySchedule[]) => {
+    return apiEvents.map((item: StudySchedule) => ({
       id: String(item.id),
       title: item.title,
       start: item.start_time,
@@ -90,8 +93,10 @@ export default function Schedule() {
     calendarApi?.today();
   };
 
-  const handleDateClick = (arg: any) => {
-    console.log(arg);
+  const handleEventClick = (info: any) => {
+    const schedule = data?.find((item) => item.id === Number(info.event.id)) ?? null;
+    setStudySchedule(schedule);
+    setDialogOpen(true);
   };
 
   return (
@@ -109,6 +114,18 @@ export default function Schedule() {
           onOpenChange={setCreateDialogOpen}
           myStudyGroup={myStudyGroup}
           userId={userId}
+        />
+      </section>
+
+      <section>
+        <ScheduleDialog
+          studySchedule={studySchedule}
+          open={dialogOpen}
+          onOpenChange={setDialogOpen}
+          myStudyGroup={myStudyGroup}
+          userId={userId}
+          data={data}
+          mutate={mutate}
         />
       </section>
 
@@ -139,7 +156,7 @@ export default function Schedule() {
             selectable={true}
             editable={true}
             events={mapToEventInput(data ?? [])}
-            dateClick={handleDateClick}
+            eventClick={handleEventClick}
             headerToolbar={{
               left: "",
               center: "",
