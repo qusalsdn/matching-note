@@ -57,6 +57,7 @@ export default function ScheduleDialog({
   open,
   onOpenChange,
   myStudyGroup,
+  userId,
   data: studySchedules,
   mutate,
 }: ScheduleDialogProps) {
@@ -162,15 +163,13 @@ export default function ScheduleDialog({
       await mutate(
         async () => {
           const updatedData = studySchedules?.filter((item) => item.id !== studySchedule?.id) ?? [];
-          const { data, error } = await supabase
+          const { error } = await supabase
             .from("study_schedules")
             .delete()
             .eq("id", studySchedule?.id ?? 0)
             .select();
 
-          if (error) throw new Error("일정 삭제 중 오류가 발생하였습니다..ㅜ");
-
-          if (data.length <= 0) throw new Error("자신이 생성한 일정만 삭제 가능합니다.!");
+          if (error) throw error;
 
           handleReset();
 
@@ -184,8 +183,7 @@ export default function ScheduleDialog({
       );
     } catch (error) {
       console.error(error);
-      const err = error as Error;
-      toast.error(err.message);
+      toast.error("일정 삭제 중 오류가 발생하였습니다..ㅜ");
     } finally {
       setLoading(false);
     }
@@ -286,7 +284,12 @@ export default function ScheduleDialog({
 
             <div className="mt-3 flex justify-between">
               <div>
-                <Button type="button" variant={"destructive"} onClick={handleStudyScheduleDelete}>
+                <Button
+                  type="button"
+                  variant={"destructive"}
+                  onClick={handleStudyScheduleDelete}
+                  disabled={studySchedule?.creator_id !== userId}
+                >
                   {loading ? "..." : "삭제"}
                 </Button>
               </div>
@@ -296,7 +299,7 @@ export default function ScheduleDialog({
                   취소
                 </Button>
 
-                <Button type="submit" disabled={loading}>
+                <Button type="submit" disabled={loading || studySchedule?.creator_id !== userId}>
                   {loading ? "..." : "수정"}
                 </Button>
               </div>
