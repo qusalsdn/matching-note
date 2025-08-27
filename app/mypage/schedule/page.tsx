@@ -22,10 +22,14 @@ export default function Schedule() {
   const router = useRouter();
   const userId = useUserId();
 
+  const [studyGroupIds, setStudyGroupIds] = useState<number[]>([]);
+
   const fetcher = async (userId: string) => {
     const { data: myGroups } = await supabase.from("group_members").select("group_id").eq("user_id", userId);
 
     const groupIds = myGroups?.map((item) => item.group_id);
+
+    setStudyGroupIds(groupIds ?? []);
 
     const { data } = await supabase
       .from("study_schedules")
@@ -51,11 +55,11 @@ export default function Schedule() {
 
   useEffect(() => {
     const fetchStudyGroup = async () => {
-      const { data } = await supabase.from("study_groups").select("*").eq("leader_id", userId);
+      const { data } = await supabase.from("study_groups").select("*").in("id", studyGroupIds);
       if (data) setMyStudyGroup(data);
     };
     fetchStudyGroup();
-  }, [userId]);
+  }, [studyGroupIds]);
 
   const mapToEventInput = (apiEvents: StudySchedule[]) => {
     return apiEvents.map((item: StudySchedule) => ({

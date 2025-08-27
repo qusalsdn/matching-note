@@ -110,7 +110,7 @@ export default function ScheduleDialog({
       await mutate(
         async () => {
           const updatedData = studySchedules?.map((item) =>
-            item.group_id === studySchedule?.group_id
+            item.id === studySchedule?.id
               ? {
                   ...item,
                   title: data.title,
@@ -129,8 +129,7 @@ export default function ScheduleDialog({
               start_time: formatDateToYYYYMMDD(date?.from ?? new Date()),
               end_time: formatDateToYYYYMMDD(date?.to ?? new Date()),
             })
-            .eq("group_id", studySchedule?.group_id ?? 0)
-            .eq("creator_id", studySchedule?.creator_id ?? "");
+            .eq("id", studySchedule?.id ?? 0);
 
           if (error) throw error;
 
@@ -147,6 +146,46 @@ export default function ScheduleDialog({
     } catch (error) {
       console.error(error);
       toast.error("일정 수정 중 오류가 발생하였습니다..ㅜ");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleStudyScheduleDelete = async () => {
+    const confirm = window.confirm("정말 삭제하시겠습니까?");
+
+    if (!confirm) return;
+
+    setLoading(true);
+
+    try {
+      await mutate(
+        async () => {
+          const updatedData = studySchedules?.filter((item) => item.id !== studySchedule?.id) ?? [];
+          const { data, error } = await supabase
+            .from("study_schedules")
+            .delete()
+            .eq("id", studySchedule?.id ?? 0)
+            .select();
+
+          if (error) throw new Error("일정 삭제 중 오류가 발생하였습니다..ㅜ");
+
+          if (data.length >= 0) throw new Error("자신이 생성한 일정만 삭제 가능합니다.!");
+
+          handleReset();
+
+          onOpenChange(false);
+
+          toast.success("일정이 삭제되었습니다.!");
+
+          return updatedData;
+        },
+        { rollbackOnError: true, populateCache: true, revalidate: false }
+      );
+    } catch (error) {
+      console.error(error);
+      const err = error as Error;
+      toast.error(err.message);
     } finally {
       setLoading(false);
     }
@@ -247,8 +286,8 @@ export default function ScheduleDialog({
 
             <div className="mt-3 flex justify-between">
               <div>
-                <Button type="button" variant={"destructive"}>
-                  삭제
+                <Button type="button" variant={"destructive"} onClick={handleStudyScheduleDelete}>
+                  {loading ? "..." : "삭제"}
                 </Button>
               </div>
 
@@ -258,7 +297,7 @@ export default function ScheduleDialog({
                 </Button>
 
                 <Button type="submit" disabled={loading}>
-                  {loading ? "수정 중..." : "수정"}
+                  {loading ? "..." : "수정"}
                 </Button>
               </div>
             </div>
