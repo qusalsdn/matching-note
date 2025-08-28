@@ -15,6 +15,9 @@ import { supabase } from "@/utils/supabase/client";
 import toast from "react-hot-toast";
 import { formatDateToYYYYMMDD } from "@/utils/dateUtils";
 import { KeyedMutator } from "swr";
+import { Database } from "@/utils/supabase/types";
+import Image from "next/image";
+import { User } from "lucide-react";
 
 const scheduleSchema = z.object({
   title: z.string().min(3, "제목은 3~20자 이내여야 합니다.").max(20, "제목은 3~20자 이내여야 합니다."),
@@ -52,6 +55,10 @@ type ScheduleDialogProps = {
   >;
 };
 
+type scheduleAttendances = Database["public"]["Tables"]["schedule_attendances"]["Row"] & {
+  users: Database["public"]["Tables"]["users"]["Row"];
+};
+
 export default function ScheduleDialog({
   studySchedule,
   open,
@@ -71,9 +78,24 @@ export default function ScheduleDialog({
     },
   });
 
+  const [scheduleAttendances, setScheduleAttendances] = useState<scheduleAttendances[]>([]);
   const [date, setDate] = useState<DateRange>({ from: new Date() });
   const [disabled, setDisabled] = useState(true);
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const fetchscheduleAttendances = async () => {
+      const { data } = await supabase
+        .from("schedule_attendances")
+        .select("*, users(*)")
+        .eq("schedule_id", studySchedule?.id ?? 0);
+
+      console.log(data);
+
+      setScheduleAttendances(data ?? []);
+    };
+    fetchscheduleAttendances();
+  }, [studySchedule?.id]);
 
   useEffect(() => {
     if (studySchedule) {
@@ -198,7 +220,7 @@ export default function ScheduleDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle>일정 수정</DialogTitle>
+          <DialogTitle>일정 상세</DialogTitle>
           <DialogDescription>일정의 정보를 입력해주세요.</DialogDescription>
         </DialogHeader>
 
@@ -286,6 +308,54 @@ export default function ScheduleDialog({
                   </FormItem>
                 )}
               />
+
+              <div>
+                <h2>참석여부</h2>
+
+                <div className="flex items-start justify-between">
+                  <div>
+                    <span>참석</span>
+                    <div className="flex flex-col">
+                      {scheduleAttendances.map(
+                        (item) =>
+                          item.status === true && (
+                            <div key={item.id} className="flex items-center space-x-1">
+                              {item.users.profile_image_url ? (
+                                <Image key={item.id} alt="" src={item.users.profile_image_url ?? ""} />
+                              ) : (
+                                <div key={item.id} className="border rounded-full p-1 shadow-sm">
+                                  <User size={17} />
+                                </div>
+                              )}
+                              <span>{item.users.username}</span>
+                            </div>
+                          )
+                      )}
+                    </div>
+                  </div>
+
+                  <div>
+                    <span>미참석</span>
+                    <div className="flex flex-col">
+                      {scheduleAttendances.map(
+                        (item) =>
+                          item.status === false && (
+                            <div key={item.id} className="flex items-start space-x-1 space-y-2">
+                              {item.users.profile_image_url ? (
+                                <Image key={item.id} alt="" src={item.users.profile_image_url ?? ""} />
+                              ) : (
+                                <div key={item.id} className="border rounded-full p-1 shadow-sm">
+                                  <User size={17} />
+                                </div>
+                              )}
+                              <span>{item.users.username}</span>
+                            </div>
+                          )
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
 
             <div className="mt-3 flex justify-between">

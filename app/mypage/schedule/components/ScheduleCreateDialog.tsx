@@ -93,15 +93,32 @@ export default function ScheduleCreateDialog({ open, onOpenChange, myStudyGroup,
     const { date, ...rest } = data;
 
     try {
-      const { error } = await supabase.from("study_schedules").insert({
-        ...rest,
-        group_id: Number(data.group_id),
-        creator_id: userId,
-        start_time: formatDateToYYYYMMDD(date?.from ?? new Date()),
-        end_time: formatDateToYYYYMMDD(date?.to ?? new Date()),
-      });
+      const { data: studySchedule, error: studySchedulesError } = await supabase
+        .from("study_schedules")
+        .insert({
+          ...rest,
+          group_id: Number(data.group_id),
+          creator_id: userId,
+          start_time: formatDateToYYYYMMDD(date?.from ?? new Date()),
+          end_time: formatDateToYYYYMMDD(date?.to ?? new Date()),
+        })
+        .select("id")
+        .single();
 
-      if (error) throw error;
+      const { data: groupMembers, error: groupMembersError } = await supabase
+        .from("group_members")
+        .select("user_id")
+        .eq("group_id", Number(data.group_id));
+
+      const scheduleAttendances =
+        groupMembers?.map((item) => ({ schedule_id: studySchedule?.id ?? 0, user_id: item.user_id, status: false })) ?? [];
+
+      const { error: scheduleAttendancesError } = await supabase.from("schedule_attendances").insert(scheduleAttendances);
+
+      const errors = [studySchedulesError, groupMembersError, scheduleAttendancesError];
+      const firstError = errors.find((e) => e !== null);
+
+      if (firstError) throw firstError;
 
       handleReset();
 
