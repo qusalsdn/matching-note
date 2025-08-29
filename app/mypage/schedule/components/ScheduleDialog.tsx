@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback, useMemo } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -14,7 +14,7 @@ import { StudyGroup, StudySchedule } from "../page";
 import { supabase } from "@/utils/supabase/client";
 import toast from "react-hot-toast";
 import { formatDateToYYYYMMDD } from "@/utils/dateUtils";
-import { KeyedMutator } from "swr";
+import useSWR, { KeyedMutator } from "swr";
 import { Database } from "@/utils/supabase/types";
 import Image from "next/image";
 import { User } from "lucide-react";
@@ -56,10 +56,6 @@ type ScheduleDialogProps = {
   >;
 };
 
-type ScheduleAttendances = Database["public"]["Tables"]["schedule_attendances"]["Row"] & {
-  users: Database["public"]["Tables"]["users"]["Row"];
-};
-
 const LOADING_TEXT = "...";
 const IMAGE_SIZE = 17;
 
@@ -82,19 +78,7 @@ export default function ScheduleDialog({
     },
   });
 
-  const [scheduleAttendances, setScheduleAttendances] = useState<ScheduleAttendances[]>([]);
-  const [scheduleChecked, setScheduleChecked] = useState(false);
-  const [date, setDate] = useState<DateRange>({ from: new Date() });
-  const [loading, setLoading] = useState(false);
-
-  const isCreator = studySchedule?.creator_id === userId;
-  const disabled = !isCreator;
-
-  const attendingUsers = useMemo(() => scheduleAttendances.filter((item) => item.status === true), [scheduleAttendances]);
-
-  const notAttendingUsers = useMemo(() => scheduleAttendances.filter((item) => item.status === false), [scheduleAttendances]);
-
-  const fetchScheduleAttendances = useCallback(async () => {
+  const fetcher = async () => {
     if (!studySchedule?.id) return;
 
     try {
@@ -105,17 +89,29 @@ export default function ScheduleDialog({
 
       if (error) throw error;
 
-      setScheduleAttendances(data ?? []);
-      setScheduleChecked(data?.some((item) => item.user_id === userId && item.status) ?? false);
+      return data;
     } catch (error) {
       console.error("참석 정보를 가져오는 중 오류:", error);
       toast.error("참석 정보를 불러오는 도중 오류가 발생하였습니다..ㅜ");
     }
-  }, [studySchedule?.id, userId]);
+  };
 
-  useEffect(() => {
-    fetchScheduleAttendances();
-  }, [fetchScheduleAttendances]);
+  const { data: scheduleAttendances, mutate: mutateSchedule } = useSWR(`${studySchedule?.id}/${userId}`, fetcher);
+
+  const [date, setDate] = useState<DateRange>({ from: new Date() });
+  const [loading, setLoading] = useState(false);
+
+  const isCreator = studySchedule?.creator_id === userId;
+  const disabled = !isCreator;
+
+  const scheduleChecked = useMemo(
+    () => scheduleAttendances?.some((item) => item.user_id === userId && item.status) ?? false,
+    [scheduleAttendances, userId]
+  );
+
+  const attendingUsers = useMemo(() => scheduleAttendances?.filter((item) => item.status === true), [scheduleAttendances]);
+
+  const notAttendingUsers = useMemo(() => scheduleAttendances?.filter((item) => item.status === false), [scheduleAttendances]);
 
   useEffect(() => {
     if (studySchedule) {
@@ -241,19 +237,24 @@ export default function ScheduleDialog({
     setLoading(true);
 
     try {
-      const { data, error } = await supabase
-        .from("schedule_attendances")
-        .update({ status: checked })
-        .eq("schedule_id", studySchedule.id)
-        .eq("user_id", userId)
-        .select("id")
-        .single();
+      mutateSchedule(
+        async () => {
+          const updatedData = scheduleAttendances?.map((item) => (item.user_id === userId ? { ...item, status: checked } : item));
 
-      if (error) throw error;
+          const { error } = await supabase
+            .from("schedule_attendances")
+            .update({ status: checked })
+            .eq("schedule_id", studySchedule.id)
+            .eq("user_id", userId)
+            .select("id")
+            .single();
 
-      setScheduleAttendances((prev) => prev.map((item) => (item.id === data.id ? { ...item, status: checked } : item)));
+          if (error) throw error;
 
-      setScheduleChecked(checked);
+          return updatedData;
+        },
+        { rollbackOnError: true, populateCache: true, revalidate: false }
+      );
 
       toast.success(checked ? "참석으로 변경되었습니다!" : "미참석으로 변경되었습니다!");
     } catch (error) {
@@ -386,22 +387,22 @@ export default function ScheduleDialog({
 
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <span className="text-green-500 font-medium">참석 ({attendingUsers.length})</span>
+                    <span className="text-green-500 font-medium">참석 ({attendingUsers?.length})</span>
                     <div className="space-y-1">
-                      {attendingUsers.map((item) => (
+                      {attendingUsers?.map((item) => (
                         <UserProfile key={`attending-${item.id}`} user={item.users} />
                       ))}
-                      {attendingUsers.length === 0 && <span className="text-sm text-gray-500">참석자가 없습니다.</span>}
+                      {attendingUsers?.length === 0 && <span className="text-sm text-gray-500">참석자가 없습니다.</span>}
                     </div>
                   </div>
 
                   <div className="space-y-2">
-                    <span className="text-red-500 font-medium">미참석 ({notAttendingUsers.length})</span>
+                    <span className="text-red-500 font-medium">미참석 ({notAttendingUsers?.length})</span>
                     <div className="space-y-1">
-                      {notAttendingUsers.map((item) => (
+                      {notAttendingUsers?.map((item) => (
                         <UserProfile key={`not-attending-${item.id}`} user={item.users} />
                       ))}
-                      {notAttendingUsers.length === 0 && <span className="text-sm text-gray-500">미참석자가 없습니다.</span>}
+                      {notAttendingUsers?.length === 0 && <span className="text-sm text-gray-500">미참석자가 없습니다.</span>}
                     </div>
                   </div>
                 </div>
