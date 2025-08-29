@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback, useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -18,6 +18,7 @@ import { KeyedMutator } from "swr";
 import { Database } from "@/utils/supabase/types";
 import Image from "next/image";
 import { User } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
 
 const scheduleSchema = z.object({
   title: z.string().min(3, "제목은 3~20자 이내여야 합니다.").max(20, "제목은 3~20자 이내여야 합니다."),
@@ -55,9 +56,12 @@ type ScheduleDialogProps = {
   >;
 };
 
-type scheduleAttendances = Database["public"]["Tables"]["schedule_attendances"]["Row"] & {
+type ScheduleAttendances = Database["public"]["Tables"]["schedule_attendances"]["Row"] & {
   users: Database["public"]["Tables"]["users"]["Row"];
 };
+
+const LOADING_TEXT = "...";
+const IMAGE_SIZE = 17;
 
 export default function ScheduleDialog({
   studySchedule,
@@ -78,50 +82,69 @@ export default function ScheduleDialog({
     },
   });
 
-  const [scheduleAttendances, setScheduleAttendances] = useState<scheduleAttendances[]>([]);
+  const [scheduleAttendances, setScheduleAttendances] = useState<ScheduleAttendances[]>([]);
+  const [scheduleChecked, setScheduleChecked] = useState(false);
   const [date, setDate] = useState<DateRange>({ from: new Date() });
-  const [disabled, setDisabled] = useState(true);
   const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    const fetchscheduleAttendances = async () => {
-      const { data } = await supabase
+  const isCreator = studySchedule?.creator_id === userId;
+  const disabled = !isCreator;
+
+  const attendingUsers = useMemo(() => scheduleAttendances.filter((item) => item.status === true), [scheduleAttendances]);
+
+  const notAttendingUsers = useMemo(() => scheduleAttendances.filter((item) => item.status === false), [scheduleAttendances]);
+
+  const fetchScheduleAttendances = useCallback(async () => {
+    if (!studySchedule?.id) return;
+
+    try {
+      const { data, error } = await supabase
         .from("schedule_attendances")
         .select("*, users(*)")
-        .eq("schedule_id", studySchedule?.id ?? 0);
+        .eq("schedule_id", studySchedule.id);
 
-      console.log(data);
+      if (error) throw error;
 
       setScheduleAttendances(data ?? []);
-    };
-    fetchscheduleAttendances();
-  }, [studySchedule?.id]);
+      setScheduleChecked(data?.some((item) => item.user_id === userId && item.status) ?? false);
+    } catch (error) {
+      console.error("참석 정보를 가져오는 중 오류:", error);
+      toast.error("참석 정보를 불러오는 도중 오류가 발생하였습니다..ㅜ");
+    }
+  }, [studySchedule?.id, userId]);
+
+  useEffect(() => {
+    fetchScheduleAttendances();
+  }, [fetchScheduleAttendances]);
 
   useEffect(() => {
     if (studySchedule) {
+      const startDate = new Date(studySchedule.start_time);
+      const endDate = studySchedule.end_time ? new Date(studySchedule.end_time) : undefined;
+
       form.reset({
         title: studySchedule.title,
         date: {
-          from: new Date(studySchedule.start_time),
-          to: studySchedule.end_time ? new Date(studySchedule.end_time) : undefined,
+          from: startDate,
+          to: endDate,
         },
         notes: studySchedule.notes ?? "",
         location: studySchedule.location ?? "",
       });
+
       setDate({
-        from: new Date(studySchedule.start_time),
-        to: studySchedule.end_time ? new Date(studySchedule.end_time) : undefined,
+        from: startDate,
+        to: endDate,
       });
     }
   }, [form, studySchedule]);
 
-  useEffect(() => {
-    setDisabled(studySchedule?.creator_id !== userId ? true : false);
-  }, [studySchedule?.creator_id, userId]);
-
   const handleReset = () => {
     form.reset();
-    setDate({ from: new Date() });
+    setDate({
+      from: studySchedule?.start_time ? new Date(studySchedule.start_time) : new Date(),
+      to: studySchedule?.end_time ? new Date(studySchedule.end_time) : undefined,
+    });
   };
 
   const handleClose = () => {
@@ -130,20 +153,22 @@ export default function ScheduleDialog({
   };
 
   const onSubmit = async (data: ScheduleForm) => {
+    if (!studySchedule?.id || loading) return;
+
     setLoading(true);
 
-    const { date, ...rest } = data;
+    const { date: dateRange, ...rest } = data;
 
     try {
       await mutate(
         async () => {
           const updatedData = studySchedules?.map((item) =>
-            item.id === studySchedule?.id
+            item.id === studySchedule.id
               ? {
                   ...item,
                   title: data.title,
-                  start_time: formatDateToYYYYMMDD(data.date?.from ?? new Date()),
-                  end_time: data.date?.to ? formatDateToYYYYMMDD(data.date?.to ?? new Date()) : null,
+                  start_time: formatDateToYYYYMMDD(dateRange?.from ?? new Date()),
+                  end_time: dateRange?.to ? formatDateToYYYYMMDD(dateRange.to) : null,
                   notes: data.notes ?? null,
                   location: data.location ?? null,
                 }
@@ -154,67 +179,109 @@ export default function ScheduleDialog({
             .from("study_schedules")
             .update({
               ...rest,
-              start_time: formatDateToYYYYMMDD(date?.from ?? new Date()),
-              end_time: formatDateToYYYYMMDD(date?.to ?? new Date()),
+              start_time: formatDateToYYYYMMDD(dateRange?.from ?? new Date()),
+              end_time: dateRange?.to ? formatDateToYYYYMMDD(dateRange.to) : null,
             })
-            .eq("id", studySchedule?.id ?? 0);
+            .eq("id", studySchedule.id);
 
           if (error) throw error;
 
-          handleReset();
-
           onOpenChange(false);
 
-          toast.success("일정이 수정되었습니다.!");
+          toast.success("일정이 수정되었습니다!");
 
           return updatedData;
         },
         { rollbackOnError: true, populateCache: true, revalidate: false }
       );
     } catch (error) {
-      console.error(error);
-      toast.error("일정 수정 중 오류가 발생하였습니다..ㅜ");
+      console.error("일정 수정 오류:", error);
+      toast.error("일정 수정 중 오류가 발생했습니다.");
     } finally {
       setLoading(false);
     }
   };
 
   const handleStudyScheduleDelete = async () => {
-    const confirm = window.confirm("정말 삭제하시겠습니까?");
+    if (!studySchedule?.id || loading) return;
 
-    if (!confirm) return;
+    const isConfirmed = window.confirm("정말 삭제하시겠습니까?");
+    if (!isConfirmed) return;
 
     setLoading(true);
 
     try {
       await mutate(
         async () => {
-          const updatedData = studySchedules?.filter((item) => item.id !== studySchedule?.id) ?? [];
-          const { error } = await supabase
-            .from("study_schedules")
-            .delete()
-            .eq("id", studySchedule?.id ?? 0)
-            .select();
+          const updatedData = studySchedules?.filter((item) => item.id !== studySchedule.id) ?? [];
+
+          const { error } = await supabase.from("study_schedules").delete().eq("id", studySchedule.id);
 
           if (error) throw error;
 
-          handleReset();
-
           onOpenChange(false);
 
-          toast.success("일정이 삭제되었습니다.!");
+          toast.success("일정이 삭제되었습니다!");
 
           return updatedData;
         },
         { rollbackOnError: true, populateCache: true, revalidate: false }
       );
     } catch (error) {
-      console.error(error);
-      toast.error("일정 삭제 중 오류가 발생하였습니다..ㅜ");
+      console.error("일정 삭제 오류:", error);
+      toast.error("일정 삭제 중 오류가 발생했습니다.");
     } finally {
       setLoading(false);
     }
   };
+
+  const onCheckedChange = async (checked: boolean) => {
+    if (!studySchedule?.id || loading) return;
+
+    setLoading(true);
+
+    try {
+      const { data, error } = await supabase
+        .from("schedule_attendances")
+        .update({ status: checked })
+        .eq("schedule_id", studySchedule.id)
+        .eq("user_id", userId)
+        .select("id")
+        .single();
+
+      if (error) throw error;
+
+      setScheduleAttendances((prev) => prev.map((item) => (item.id === data.id ? { ...item, status: checked } : item)));
+
+      setScheduleChecked(checked);
+
+      toast.success(checked ? "참석으로 변경되었습니다!" : "미참석으로 변경되었습니다!");
+    } catch (error) {
+      console.error("참석여부 변경 오류:", error);
+      toast.error("참석여부 처리 중 오류가 발생했습니다.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const UserProfile = ({ user }: { user: Database["public"]["Tables"]["users"]["Row"] }) => (
+    <div className="flex items-center space-x-1">
+      {user.profile_image_url ? (
+        <Image
+          alt={`${user.username} 프로필`}
+          src={user.profile_image_url}
+          width={IMAGE_SIZE}
+          height={IMAGE_SIZE}
+          className="rounded-full"
+        />
+      ) : (
+        <div className="border rounded-full p-1 shadow-sm">
+          <User size={IMAGE_SIZE} />
+        </div>
+      )}
+      <span className="text-sm">{user.username}</span>
+    </div>
+  );
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -227,19 +294,21 @@ export default function ScheduleDialog({
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)}>
             <div className="space-y-4 max-h-96 py-5 overflow-auto">
-              <FormLabel>스터디 그룹</FormLabel>
-              <Select value={studySchedule?.group_id.toString()} disabled>
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="스터디 그룹 선택" />
-                </SelectTrigger>
-                <SelectContent>
-                  {myStudyGroup.map((item) => (
-                    <SelectItem key={item.id} value={item.id.toString()}>
-                      {item.group_name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <div className="space-y-2">
+                <FormLabel>스터디 그룹</FormLabel>
+                <Select value={studySchedule?.group_id.toString()} disabled>
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="스터디 그룹 선택" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {myStudyGroup.map((item) => (
+                      <SelectItem key={item.id} value={item.id.toString()}>
+                        {item.group_name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
 
               <FormField
                 control={form.control}
@@ -309,49 +378,30 @@ export default function ScheduleDialog({
                 )}
               />
 
-              <div>
-                <h2>참석여부</h2>
+              <div className="space-y-3">
+                <div className="flex items-end justify-between space-x-1">
+                  <h2>참석여부</h2>
+                  <Checkbox checked={scheduleChecked} onCheckedChange={onCheckedChange} className="w-5 h-5" disabled={loading} />
+                </div>
 
-                <div className="flex items-start justify-between">
-                  <div>
-                    <span>참석</span>
-                    <div className="flex flex-col">
-                      {scheduleAttendances.map(
-                        (item) =>
-                          item.status === true && (
-                            <div key={item.id} className="flex items-center space-x-1">
-                              {item.users.profile_image_url ? (
-                                <Image key={item.id} alt="" src={item.users.profile_image_url ?? ""} />
-                              ) : (
-                                <div key={item.id} className="border rounded-full p-1 shadow-sm">
-                                  <User size={17} />
-                                </div>
-                              )}
-                              <span>{item.users.username}</span>
-                            </div>
-                          )
-                      )}
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <span className="text-green-500 font-medium">참석 ({attendingUsers.length})</span>
+                    <div className="space-y-1">
+                      {attendingUsers.map((item) => (
+                        <UserProfile key={`attending-${item.id}`} user={item.users} />
+                      ))}
+                      {attendingUsers.length === 0 && <span className="text-sm text-gray-500">참석자가 없습니다.</span>}
                     </div>
                   </div>
 
-                  <div>
-                    <span>미참석</span>
-                    <div className="flex flex-col">
-                      {scheduleAttendances.map(
-                        (item) =>
-                          item.status === false && (
-                            <div key={item.id} className="flex items-start space-x-1 space-y-2">
-                              {item.users.profile_image_url ? (
-                                <Image key={item.id} alt="" src={item.users.profile_image_url ?? ""} />
-                              ) : (
-                                <div key={item.id} className="border rounded-full p-1 shadow-sm">
-                                  <User size={17} />
-                                </div>
-                              )}
-                              <span>{item.users.username}</span>
-                            </div>
-                          )
-                      )}
+                  <div className="space-y-2">
+                    <span className="text-red-500 font-medium">미참석 ({notAttendingUsers.length})</span>
+                    <div className="space-y-1">
+                      {notAttendingUsers.map((item) => (
+                        <UserProfile key={`not-attending-${item.id}`} user={item.users} />
+                      ))}
+                      {notAttendingUsers.length === 0 && <span className="text-sm text-gray-500">미참석자가 없습니다.</span>}
                     </div>
                   </div>
                 </div>
@@ -360,8 +410,8 @@ export default function ScheduleDialog({
 
             <div className="mt-3 flex justify-between">
               <div>
-                <Button type="button" variant={"destructive"} onClick={handleStudyScheduleDelete} disabled={disabled}>
-                  {loading ? "..." : "삭제"}
+                <Button type="button" variant="destructive" onClick={handleStudyScheduleDelete} disabled={disabled || loading}>
+                  {loading ? LOADING_TEXT : "삭제"}
                 </Button>
               </div>
 
@@ -371,7 +421,7 @@ export default function ScheduleDialog({
                 </Button>
 
                 <Button type="submit" disabled={loading || disabled}>
-                  {loading ? "..." : "수정"}
+                  {loading ? LOADING_TEXT : "수정"}
                 </Button>
               </div>
             </div>
