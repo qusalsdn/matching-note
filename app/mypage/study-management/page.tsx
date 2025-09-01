@@ -3,7 +3,7 @@
 import { useUserId } from "@/app/hooks/useUserId";
 import { Button } from "@/components/ui/button";
 import { Card, CardAction, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { formatDate } from "@/utils/dateUtils";
+import { utcToKst } from "@/utils/dateUtils";
 import { supabase } from "@/utils/supabase/client";
 import clsx from "clsx";
 import { ChevronLeft, User, Users } from "lucide-react";
@@ -95,7 +95,7 @@ export default function StudyManagement() {
                   <CardHeader>
                     <CardTitle>{item.study_groups.group_name}</CardTitle>
 
-                    <CardAction className="text-xs text-zinc-500">{formatDate(item.study_groups.created_at)}</CardAction>
+                    <CardAction className="text-xs text-zinc-500">{utcToKst(item.study_groups.created_at)}</CardAction>
                   </CardHeader>
 
                   <CardContent className="text-sm lg:text-base">

@@ -1,6 +1,6 @@
 import { Card, CardAction, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { CircleCheck, CircleEllipsis, CircleX, Users } from "lucide-react";
-import { formatDate } from "@/utils/dateUtils";
+import { utcToKst } from "@/utils/dateUtils";
 import { Database } from "@/utils/supabase/types";
 import { useAtomValue } from "jotai";
 import { userUuidAtom } from "@/atoms/authAtom";
@@ -69,7 +69,7 @@ export default function StudyGroupPostCard({
               </span>
             </div>
           )}
-          <span className="lg:text-sm text-xs text-zinc-500">{formatDate(item.created_at)}</span>
+          <span className="lg:text-sm text-xs text-zinc-500">{utcToKst(item.created_at)}</span>
           <div className="flex space-x-2">
             <HeartButton
               active={item.group_likes.some((like) => like.user_id === userId)}

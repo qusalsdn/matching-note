@@ -1,12 +1,13 @@
-export const formatDate = (date: string) => {
-  if (!date) return "";
+import dayjs from "dayjs";
+import utc from "dayjs/plugin/utc";
+import timezone from "dayjs/plugin/timezone";
 
-  const newDate = new Date(date);
-  const kstDate = new Date(newDate.getTime() + 9 * 60 * 60 * 1000);
-  const formattedDate = `${kstDate.getFullYear()}.${String(kstDate.getMonth() + 1).padStart(2, "0")}.${String(
-    kstDate.getDate()
-  ).padStart(2, "0")} ${String(kstDate.getHours()).padStart(2, "0")}:${String(kstDate.getMinutes()).padStart(2, "0")}`;
+dayjs.extend(utc);
+dayjs.extend(timezone);
 
+export const utcToKst = (utcString: string) => {
+  const koreaTime = dayjs.utc(utcString).tz("Asia/Seoul");
+  const formattedDate = koreaTime.format("YYYY-MM-DD HH:mm");
   return formattedDate;
 };
 

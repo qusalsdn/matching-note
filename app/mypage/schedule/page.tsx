@@ -195,6 +195,7 @@ export default function Schedule() {
             datesSet={handleDatesSet}
             height={"100%"}
             contentHeight={"100%"}
+            displayEventTime={false}
           />
         </div>
       </section>

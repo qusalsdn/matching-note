@@ -3,7 +3,7 @@
 import { ChevronLeft, Ellipsis, MapPinned, SquarePen, Trash2, User, UserRoundPen, Users } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Card, CardAction, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { formatDate } from "@/utils/dateUtils";
+import { utcToKst } from "@/utils/dateUtils";
 import { Database } from "@/utils/supabase/types";
 import { supabase } from "@/utils/supabase/client";
 import useSWR from "swr";
@@ -196,7 +196,7 @@ export default function StudyGroupDetail({ studyGroupId }: { studyGroupId: strin
                 </div>
               )}
 
-              <span className="lg:text-sm text-xs text-zinc-500">{formatDate(data?.created_at ?? "")}</span>
+              <span className="lg:text-sm text-xs text-zinc-500">{utcToKst(data?.created_at ?? "")}</span>
 
               <div className="flex space-x-2">
                 <HeartButton
