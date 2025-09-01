@@ -33,6 +33,74 @@ export type Database = {
   };
   public: {
     Tables: {
+      chat_participants: {
+        Row: {
+          id: number;
+          joined_at: string;
+          room_id: number;
+          user_id: string;
+        };
+        Insert: {
+          id?: number;
+          joined_at?: string;
+          room_id: number;
+          user_id: string;
+        };
+        Update: {
+          id?: number;
+          joined_at?: string;
+          room_id?: number;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "chat_participants_room_id_fkey";
+            columns: ["room_id"];
+            isOneToOne: true;
+            referencedRelation: "chat_rooms";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "chat_participants_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: true;
+            referencedRelation: "users";
+            referencedColumns: ["user_id"];
+          }
+        ];
+      };
+      chat_rooms: {
+        Row: {
+          created_at: string;
+          group_id: number;
+          id: number;
+          is_private: boolean;
+          room_name: string;
+        };
+        Insert: {
+          created_at?: string;
+          group_id: number;
+          id?: number;
+          is_private: boolean;
+          room_name: string;
+        };
+        Update: {
+          created_at?: string;
+          group_id?: number;
+          id?: number;
+          is_private?: boolean;
+          room_name?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "chat_rooms_group_id_fkey";
+            columns: ["group_id"];
+            isOneToOne: false;
+            referencedRelation: "study_groups";
+            referencedColumns: ["id"];
+          }
+        ];
+      };
       group_applications: {
         Row: {
           applicant_id: string;
@@ -186,6 +254,45 @@ export type Database = {
           }
         ];
       };
+      messages: {
+        Row: {
+          content: string;
+          id: number;
+          room_id: number;
+          send_at: string;
+          sender_id: string;
+        };
+        Insert: {
+          content: string;
+          id?: number;
+          room_id: number;
+          send_at?: string;
+          sender_id: string;
+        };
+        Update: {
+          content?: string;
+          id?: number;
+          room_id?: number;
+          send_at?: string;
+          sender_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "messages_room_id_fkey";
+            columns: ["room_id"];
+            isOneToOne: false;
+            referencedRelation: "chat_rooms";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "messages_sender_id_fkey";
+            columns: ["sender_id"];
+            isOneToOne: false;
+            referencedRelation: "users";
+            referencedColumns: ["user_id"];
+          }
+        ];
+      };
       notifications: {
         Row: {
           created_at: string;
@@ -218,6 +325,52 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "users";
             referencedColumns: ["id"];
+          }
+        ];
+      };
+      read_receipts: {
+        Row: {
+          id: number;
+          last_read_at: string;
+          last_read_message_id: number;
+          room_id: number;
+          user_id: string;
+        };
+        Insert: {
+          id?: number;
+          last_read_at?: string;
+          last_read_message_id: number;
+          room_id: number;
+          user_id: string;
+        };
+        Update: {
+          id?: number;
+          last_read_at?: string;
+          last_read_message_id?: number;
+          room_id?: number;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "read_receipts_last_read_message_id_fkey";
+            columns: ["last_read_message_id"];
+            isOneToOne: false;
+            referencedRelation: "messages";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "read_receipts_room_id_fkey";
+            columns: ["room_id"];
+            isOneToOne: true;
+            referencedRelation: "chat_rooms";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "read_receipts_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: true;
+            referencedRelation: "users";
+            referencedColumns: ["user_id"];
           }
         ];
       };

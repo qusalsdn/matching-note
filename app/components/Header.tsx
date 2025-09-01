@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { supabase } from "@/utils/supabase/client";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useAtom } from "jotai";
-import { Search, User } from "lucide-react";
+import { MessageCircle, Search, User } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
@@ -64,8 +64,14 @@ export default function Header() {
           !shouldHideLoginButton &&
           (isLoggedIn ? (
             <div className="flex items-center space-x-3">
+              <Link href={"/chats"}>
+                <div className="text-zinc-500 ">
+                  <MessageCircle />
+                </div>
+              </Link>
+
               <Link href={"/mypage"}>
-                <div className="border-2 p-1 rounded-full shadow-md text-zinc-500">
+                <div className="text-zinc-500 ">
                   <User />
                 </div>
               </Link>

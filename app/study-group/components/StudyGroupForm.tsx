@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
 import { AppRouterInstance } from "next/dist/shared/lib/app-router-context.shared-runtime";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
 interface StduyGroupFormProps {
   router: AppRouterInstance;
@@ -28,6 +28,7 @@ export function StudyGroupForm({ router, form, onSubmit, submitButtonLabel, load
     <Card>
       <CardHeader>
         <CardTitle>스터디 그룹 생성</CardTitle>
+        <CardDescription>스터디 그룹 생성 시 채팅방이 자동으로 생성됩니다.</CardDescription>
       </CardHeader>
 
       <CardContent>

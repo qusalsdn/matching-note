@@ -44,15 +44,39 @@ export default function StudyGroupCreate() {
   const onSubmit = async (formData: StudyGroupFormData) => {
     setLoading(true);
     try {
-      const { data: insertedGroups, error: insertGroupError } = await supabase.from("study_groups").insert(formData).select();
+      const { data: insertedGroups, error: insertGroupError } = await supabase
+        .from("study_groups")
+        .insert(formData)
+        .select()
+        .single();
+
       if (insertGroupError) return toast.error("스터디 생성 중 오류가 발생하였습니다..ㅜ");
 
-      const groupId = insertedGroups[0].id;
+      const groupId = insertedGroups.id;
 
       const { error: insertMemberError } = await supabase
         .from("group_members")
         .insert({ group_id: groupId, user_id: userId, role: "리더" });
+
       if (insertMemberError) return toast.error("스터디 멤버 생성 중 오류가 발생하였습니다..ㅜ");
+
+      const { data: chatRoom, error: chatRoomError } = await supabase
+        .from("chat_rooms")
+        .insert({
+          group_id: groupId,
+          room_name: formData.group_name,
+          is_private: false,
+        })
+        .select("id")
+        .single();
+
+      if (chatRoomError) return toast.error("채팅방 생성 중 오류가 발생하였습니다..ㅜ");
+
+      const { error: chatParticipantsError } = await supabase
+        .from("chat_participants")
+        .insert({ room_id: chatRoom?.id ?? 0, user_id: userId });
+
+      if (chatParticipantsError) return toast.error("채팅방 멤버 생성 중 오류가 발생하였습니다..ㅜ");
 
       toast.success("스터디 그룹 생성 완료!");
 
