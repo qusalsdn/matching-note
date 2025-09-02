@@ -52,7 +52,7 @@ export default function Header() {
   };
 
   return (
-    <header className="mx-auto max-w-5xl px-5 lg:px-0 flex flex-col">
+    <header className="mx-auto w-full max-w-3xl px-5 lg:px-0 flex flex-col">
       <section className="flex items-center justify-between">
         <div className="relative w-32 h-20">
           <Link href={"/"}>
