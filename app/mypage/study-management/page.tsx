@@ -33,25 +33,40 @@ export default function StudyManagement() {
   const { data, error, mutate } = useSWR(userId ? ["studyManagement", userId] : null, fetcher);
 
   const handleAccept = async (id: number, group_id: number, user_id: string) => {
-    mutate(
-      async () => {
-        const updatedData = data?.filter((item) => item.id !== id);
+    try {
+      mutate(
+        async () => {
+          const updatedData = data?.filter((item) => item.id !== id);
 
-        const { error: groupApplicationsError } = await supabase
-          .from("group_applications")
-          .update({ status: "승인" })
-          .eq("id", id);
+          const { error: groupApplicationsError } = await supabase
+            .from("group_applications")
+            .update({ status: "승인" })
+            .eq("id", id);
 
-        const { error: groupMembersError } = await supabase.from("group_members").insert({ group_id, user_id, role: "멤버" });
+          const { error: groupMembersError } = await supabase.from("group_members").insert({ group_id, user_id, role: "멤버" });
 
-        if (groupApplicationsError || groupMembersError) throw error;
+          const { data: chatRoom, error: chatRoomsError } = await supabase
+            .from("chat_rooms")
+            .select("id")
+            .eq("group_id", group_id)
+            .single();
 
-        toast.success("수락되었습니다.!");
+          const { error: chatParticipantsError } = await supabase
+            .from("chat_participants")
+            .insert({ room_id: chatRoom?.id ?? 0, user_id });
 
-        return updatedData;
-      },
-      { rollbackOnError: true, populateCache: true, revalidate: false }
-    );
+          if (groupApplicationsError || groupMembersError || chatRoomsError || chatParticipantsError) throw error;
+
+          toast.success("수락되었습니다.!");
+
+          return updatedData;
+        },
+        { rollbackOnError: true, populateCache: true, revalidate: false }
+      );
+    } catch (error) {
+      console.error(error);
+      toast.error("승인처리 중 오류가 발생하였습니다..ㅜ");
+    }
   };
 
   const handleRefuse = async (id: number) => {

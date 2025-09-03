@@ -17,7 +17,7 @@ export default function RootLayout({
     <html lang="ko">
       <body className="h-dvh flex flex-col">
         <Header />
-        <main className="mx-auto w-full h-dvh max-w-3xl p-5 lg:px-0">{children}</main>
+        <main className="mx-auto w-full h-full max-w-3xl p-5 lg:px-0">{children}</main>
         <Toaster />
       </body>
     </html>
